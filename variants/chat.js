@@ -12,6 +12,7 @@
     render(root, ctx) {
       const esc = ctx.esc;
       const P = ctx.P;
+      const t = ctx.t, HI = ctx.hi;   // HI: Hindi version (?lang=hi): the same banter in Devanagari
       const AUTO = /[?&]auto=1\b/.test(location.search);
       const STATIC = ctx.isStatic;
       const RM = ctx.reducedMotion;
@@ -21,80 +22,89 @@
       const firstMap = ctx.events[0].venueInfo.map;
 
       const WHO = {
-        mummy: { name: 'Mummy', ini: 'M', c: '#b0306a' },
-        papa: { name: 'Papa', ini: 'P', c: '#1d7466' },
-        bua: { name: 'Bua ji', ini: 'B', c: '#7445b0' },
-        chachu: { name: 'Chachu', ini: 'C', c: '#b9540b' },
+        mummy: { name: t('Mummy', 'मम्मी'), ini: t('M', 'म'), c: '#b0306a', f: 1 },
+        papa: { name: t('Papa', 'पापा'), ini: t('P', 'प'), c: '#1d7466' },
+        bua: { name: t('Bua ji', 'बुआ जी'), ini: t('B', 'ब'), c: '#7445b0', f: 1 },
+        chachu: { name: t('Chachu', 'चाचू'), ini: t('C', 'च'), c: '#b9540b' },
         nilaksh: { name: P.groom, ini: P.groom.charAt(0), c: '#2b5fae' },
-        couple: { name: `${P.groom} & ${P.bride}`, ini: `${P.groom.charAt(0)}♥${P.bride.charAt(0)}`, c: '#8a1c2b' },
+        couple: { name: `${P.groom} ${t('&', 'और')} ${P.bride}`, ini: `${P.groom.charAt(0)}♥${P.bride.charAt(0)}`, c: '#8a1c2b' },
       };
-      const MEMBERS = `Mummy, Papa, Bua ji, Chachu, ${P.groom}, You`;
+      const MEMBERS = t(`Mummy, Papa, Bua ji, Chachu, ${P.groom}, You`, `मम्मी, पापा, बुआ जी, चाचू, ${P.groom}, आप`);
+      const GROUP = t('Aggarwal Parivar 💍', 'अग्रवाल परिवार 💍');
+      const at = esc(guestName || t('everyone', 'सभी'));
 
       /* ---------- script ---------- */
       function buildScript() {
         const s = [];
-        s.push({ t: 'date', text: 'Today' });
-        s.push({ t: 'sys', text: `Mummy added ${guestName || 'you'}` });
-        s.push({ who: 'papa', text: 'Beta, card bhej diya sabko?' });
-        s.push({ who: 'nilaksh', text: 'Haan Papa, bas ek special family reh gayi 😄' });
-        s.push({ who: 'mummy', len: 30, html: `<span class="chat-at">@${esc(guestName || 'everyone')}</span> 🙏 you are invited!` });
-        const intro = {
+        s.push({ t: 'date', text: t('Today', 'आज') });
+        s.push({ t: 'sys', text: HI ? (guestName ? `मम्मी ने ${guestName} को जोड़ा` : 'मम्मी ने आपको जोड़ा') : `Mummy added ${guestName || 'you'}` });
+        s.push({ who: 'papa', text: t('Beta, card bhej diya sabko?', 'बेटा, कार्ड भेज दिया सबको?') });
+        s.push({ who: 'nilaksh', text: t('Haan Papa, bas ek special family reh gayi 😄', 'हाँ पापा, बस एक स्पेशल फ़ैमिली रह गई 😄') });
+        s.push({ who: 'mummy', len: 30, html: `<span class="chat-at">@${at}</span> 🙏 ${t('you are invited!', 'आप आमंत्रित हैं!')}` });
+        const intro = (HI ? {
+          wedding: `${P.groom} और ${P.bride} की शादी है! 💍 सारे फ़ंक्शन नीचे हैं 👇`,
+          engagement: `${P.groom} और ${P.bride} की सगाई है! 💍 अंगूठी, संगीत और डांस, सब कुछ 👇`,
+          haldi: 'हल्दी और भात: सुबह-सुबह पूरी फ़ैमिली का प्यार 💛 डिटेल्स नीचे 👇',
+          mehandi: 'मेहंदी और गीत की शाम! 🌿 ढोलक बजेगी, मेहंदी लगेगी 👇',
+          sunderkand: 'शादी से पहले घर पे सुंदरकांड पाठ रखा है 🙏 हनुमान जी का आशीर्वाद लेने ज़रूर आना।',
+        } : {
           wedding: `${P.groom} aur ${P.bride} ki shaadi hai! 💍 Saare functions neeche hain 👇`,
           engagement: `${P.groom} aur ${P.bride} ki sagai hai! 💍 Ring, music aur dance, sab kuch 👇`,
           haldi: 'Haldi aur Bhaat: subah subah poori family ka pyaar 💛 Details neeche 👇',
           mehandi: 'Mehandi aur geet ki shaam! 🌿 Dholak bajegi, mehandi lagegi 👇',
           sunderkand: 'Shaadi se pehle ghar pe Sunderkand Path rakha hai 🙏 Hanuman ji ka aashirwad lene zaroor aana.',
-        }[key];
+        })[key];
+        const menu = () => { s.push({ who: 'chachu', text: t('Dinner menu kya hai?', 'डिनर मेन्यू क्या है?') }); s.push({ who: 'mummy', text: t('Aao toh sahi 😄', 'आओ तो सही 😄') }); };
         if (intro) s.push({ who: 'mummy', text: intro });
 
         const n = ctx.events.length;
         ctx.events.forEach((ev, i) => {
           s.push({ who: i % 3 === 2 ? 'papa' : 'mummy', t: 'event', ev, i, n });
-          const food = /dinner/i.test(ev.note || '');
-          const lunch = /lunch/i.test(ev.note || '');
+          const noteEn = (ev.en || ev).note || '';   // the English note, also in Hindi mode
+          const food = /dinner/i.test(noteEn);
+          const lunch = /lunch/i.test(noteEn);
           switch (ev.id) {
             case 'engagement':
-              s.push({ who: 'bua', t: 'sticker', emo: '💃🕺', label: 'Sangeet mein pehla dance mera!' });
+              s.push({ who: 'bua', t: 'sticker', emo: '💃🕺', label: t('Sangeet mein pehla dance mera!', 'संगीत में पहला डांस मेरा!') });
               break;
             case 'ghudchadi':
-              s.push({ who: 'chachu', text: 'Ghodi ke aage naachne ki booking meri 🐎' });
+              s.push({ who: 'chachu', text: t('Ghodi ke aage naachne ki booking meri 🐎', 'घोड़ी के आगे नाचने की बुकिंग मेरी 🐎') });
               break;
             case 'baraat':
-              s.push({ who: 'bua', t: 'sticker', emo: '🥁💃', label: 'Naagin dance pakka!' });
+              s.push({ who: 'bua', t: 'sticker', emo: '🥁💃', label: t('Naagin dance pakka!', 'नागिन डांस पक्का!') });
               break;
             case 'dinner':
-              s.push({ who: 'chachu', text: 'Dinner menu kya hai?' });
-              s.push({ who: 'mummy', text: 'Aao toh sahi 😄' });
+              menu();
               break;
             case 'vidaai':
-              s.push({ who: 'mummy', text: `Aur phir ${P.bride} ghar aayegi 🥹❤️` });
+              s.push({ who: 'mummy', text: t(`Aur phir ${P.bride} ghar aayegi 🥹❤️`, `और फिर ${P.bride} घर आएगी 🥹❤️`) });
               break;
             case 'haldi':
-              s.push({ who: 'bua', t: 'sticker', emo: '💛🌼', label: `Bach ke rehna ${P.groom}!` });
-              if (ev.dress) s.push({ who: 'mummy', text: 'Rainbow colours pehen ke aana 🌈' });
+              s.push({ who: 'bua', t: 'sticker', emo: '💛🌼', label: t(`Bach ke rehna ${P.groom}!`, `बच के रहना ${P.groom}!`) });
+              if (ev.dress) s.push({ who: 'mummy', text: t('Rainbow colours pehen ke aana 🌈', 'इंद्रधनुषी रंग पहन के आना 🌈') });
               break;
             case 'bhaat':
-              s.push({ who: 'papa', text: 'Nanihaal se Bhaat aayega, sab time pe aana 🎁' });
+              s.push({ who: 'papa', text: t('Nanihaal se Bhaat aayega, sab time pe aana 🎁', 'ननिहाल से भात आएगा, सब टाइम पे आना 🎁') });
               break;
             case 'mehandi':
-              s.push({ who: 'bua', t: 'sticker', emo: '💃🌿', label: 'Geet main shuru karungi!' });
-              if (food) { s.push({ who: 'chachu', text: 'Dinner menu kya hai?' }); s.push({ who: 'mummy', text: 'Aao toh sahi 😄' }); }
+              s.push({ who: 'bua', t: 'sticker', emo: '💃🌿', label: t('Geet main shuru karungi!', 'गीत मैं शुरू करूँगी!') });
+              if (food) menu();
               break;
             case 'sunderkand':
-              s.push({ who: 'bua', t: 'sticker', emo: '🙏🚩', label: 'Jai Bajrang Bali!' });
-              if (lunch) { s.push({ who: 'chachu', text: 'Path ke baad lunch bhi hai na? 😇' }); s.push({ who: 'mummy', text: 'Haan ji, aao toh sahi 😄' }); }
+              s.push({ who: 'bua', t: 'sticker', emo: '🙏🚩', label: t('Jai Bajrang Bali!', 'जय बजरंग बली!') });
+              if (lunch) { s.push({ who: 'chachu', text: t('Path ke baad lunch bhi hai na? 😇', 'पाठ के बाद लंच भी है ना? 😇') }); s.push({ who: 'mummy', text: t('Haan ji, aao toh sahi 😄', 'हाँ जी, आओ तो सही 😄') }); }
               break;
             default:
-              if (food && !has('dinner')) { s.push({ who: 'chachu', text: 'Dinner menu kya hai?' }); s.push({ who: 'mummy', text: 'Aao toh sahi 😄' }); }
+              if (food && !has('dinner')) menu();
           }
         });
 
         const devotional = key === 'sunderkand';
-        s.push({ who: 'nilaksh', t: 'voice', cap: devotional ? 'Bhajan mandali ki practice 🎶' : 'Dhol wale bhaiya ki practice 🥁 Volume full!' });
+        s.push({ who: 'nilaksh', t: 'voice', cap: devotional ? t('Bhajan mandali ki practice 🎶', 'भजन मंडली की प्रैक्टिस 🎶') : t('Dhol wale bhaiya ki practice 🥁 Volume full!', 'ढोल वाले भैया की प्रैक्टिस 🥁 वॉल्यूम फ़ुल!') });
         s.push(devotional
-          ? { who: 'bua', t: 'sticker', emo: '🎶🙏', label: 'Jai Shri Ram!' }
-          : { who: 'bua', t: 'sticker', emo: '💃🕺', label: 'Ruk nahi sakti ab!' });
-        s.push({ who: 'couple', t: 'couple', text: 'Aana zaroor hai!', len: 22 });
+          ? { who: 'bua', t: 'sticker', emo: '🎶🙏', label: t('Jai Shri Ram!', 'जय श्री राम!') }
+          : { who: 'bua', t: 'sticker', emo: '💃🕺', label: t('Ruk nahi sakti ab!', 'रुक नहीं सकती अब!') });
+        s.push({ who: 'couple', t: 'couple', text: t('Aana zaroor hai!', 'आना ज़रूर है!'), len: 22 });
         s.push({ who: 'mummy', t: 'invite', len: 24 });
         return s;
       }
@@ -137,30 +147,30 @@
 
       function eventCard(s) {
         const ev = s.ev;
-        const tag = s.n > 1 ? `Function ${s.i + 1} of ${s.n}` : 'Save the date';
+        const tag = s.n > 1 ? t(`Function ${s.i + 1} of ${s.n}`, `फ़ंक्शन ${s.i + 1} / ${s.n}`) : t('Save the date', 'तारीख़ याद रखें');
         const time = ev.isTimeText
-          ? `<i>${esc(ev.time)}</i>${ev.timeEn ? ` <span class="chat-ev-sub">(${esc(ev.timeEn)})</span>` : ''}`
+          ? `<i>${esc(ev.time)}</i>${ev.timeEn && !HI ? ` <span class="chat-ev-sub">(${esc(ev.timeEn)})</span>` : ''}`
           : esc(ev.time);
-        const v = ev.venueInfo;
+        const v = HI ? Object.assign({}, ev.venueInfo, ev.venueInfo.hi) : ev.venueInfo;
         const mapInner = `
             <span class="chat-map-art">${mapArt(ev)}</span>
             <span class="chat-map-cap"><b>${esc(v.name)}</b><small>${esc(v.area)}</small></span>
-            ${STATIC ? '' : '<span class="chat-map-go">Directions ›</span>'}`;
+            ${STATIC ? '' : `<span class="chat-map-go">${t('Directions ›', 'रास्ता देखें ›')}</span>`}`;
         const map = STATIC
           ? `<div class="chat-map">${mapInner}</div>`
-          : `<a class="chat-map" href="${esc(v.map)}" target="_blank" rel="noopener" aria-label="Directions to ${esc(v.name)}">${mapInner}</a>`;
+          : `<a class="chat-map" href="${esc(v.map)}" target="_blank" rel="noopener" aria-label="${t('Directions to', 'रास्ता:')} ${esc(v.name)}">${mapInner}</a>`;
         return `
           <div class="chat-ev">
             <div class="chat-ev-band"><span class="chat-ev-emo" aria-hidden="true">${EMOJI[ev.id] || '✨'}</span><span class="chat-ev-tag">📣 ${esc(tag)}</span></div>
             <div class="chat-ev-body">
               <h3 class="chat-ev-name">${esc(ev.name)}</h3>
-              ${ev.hi ? `<p class="chat-ev-hi" lang="hi">${esc(ev.hi)}</p>` : ''}
+              ${ev.hi && !HI ? `<p class="chat-ev-hi" lang="hi">${esc(ev.hi)}</p>` : ''}
               <ul class="chat-ev-facts">
                 <li><span aria-hidden="true">📅</span><span>${esc(ev.dateLong)}</span></li>
                 <li><span aria-hidden="true">⏰</span><span>${time}</span></li>
                 <li><span aria-hidden="true">📍</span><span>${esc(ev.place)}</span></li>
                 ${ev.note ? `<li><span aria-hidden="true">🍛</span><span>${esc(ev.note.charAt(0).toUpperCase() + ev.note.slice(1))}</span></li>` : ''}
-                ${ev.dress ? `<li><span aria-hidden="true">🌈</span><span>Dress code: ${esc(ev.dress)}</span></li>` : ''}
+                ${ev.dress ? `<li><span aria-hidden="true">🌈</span><span>${t('Dress code', 'वेशभूषा')}: ${esc(ev.dress)}</span></li>` : ''}
               </ul>
             </div>
             ${map}
@@ -186,7 +196,7 @@
             cls = ' chat-b-ev'; body = name + eventCard(s) + time; break;
           case 'sticker':
             return `<div class="chat-row chat-in${cont ? ' chat-cont' : ''}">${av(s.who)}
-              <div class="chat-stk" role="img" aria-label="${esc(w.name)} sent a sticker: ${esc(s.label)}">
+              <div class="chat-stk" role="img" aria-label="${esc(w.name)}${t(' sent a sticker', ' का स्टिकर')}: ${esc(s.label)}">
                 <span class="chat-stk-emo" aria-hidden="true">${s.emo}</span>
                 <span class="chat-stk-lbl">${esc(s.label)}</span>
                 ${time}
@@ -194,7 +204,7 @@
           case 'voice':
             cls = ' chat-b-voice';
             body = `${name}
-              ${STATIC ? '<div class="chat-vn">' : `<button type="button" class="chat-vn" aria-label="Play voice note from ${esc(w.name)}">`}
+              ${STATIC ? '<div class="chat-vn">' : `<button type="button" class="chat-vn" aria-label="${t('Play voice note from', 'वॉइस नोट चलाएँ:')} ${esc(w.name)}">`}
                 <span class="chat-vn-play" aria-hidden="true"><span class="chat-vn-tri"></span><span class="chat-vn-badge">🥁</span></span>
                 <span class="chat-vn-wave" aria-hidden="true">${waveHTML()}</span>
                 <span class="chat-vn-dur">0:07</span>
@@ -203,12 +213,12 @@
             break;
           case 'couple':
             cls = ' chat-b-couple';
-            body = `${name}<div class="chat-txt"><span class="chat-big">${esc(s.text)}</span> 🙏❤️<span class="chat-sign">— ${esc(P.groom)} &amp; ${esc(P.bride)}</span></div>${time}`;
+            body = `${name}<div class="chat-txt"><span class="chat-big">${esc(s.text)}</span> 🙏❤️<span class="chat-sign">— ${esc(P.groom)} ${t('&amp;', 'और')} ${esc(P.bride)}</span></div>${time}`;
             break;
           case 'invite':
             return `<div class="chat-row chat-wide" id="chat-invite">
               <div class="chat-b chat-b-card">
-                <span class="chat-name" style="color:${w.c}">${esc(w.name)} shared the invitation</span>
+                <span class="chat-name" style="color:${w.c}">${esc(w.name)} ${t('shared the invitation', 'ने निमंत्रण भेजा')}</span>
                 <div class="chat-card-band"><span aria-hidden="true">💌</span><span>${esc(ctx.greeting)},</span></div>
                 <div class="chat-card-sum">${ctx.summaryHTML()}</div>
                 ${time}
@@ -221,8 +231,10 @@
 
       /* ---------- skeleton ---------- */
       const pinInner = `<span class="chat-pin-ic" aria-hidden="true">📌</span>
-        <span class="chat-pin-txt"><b>Pinned · Mummy</b><span>${esc(ctx.greeting)}: all ${ctx.events.length > 1 ? `${ctx.events.length} functions` : 'details'} here 💌</span></span>
-        ${STATIC ? '' : '<span class="chat-pin-go">View</span>'}`;
+        <span class="chat-pin-txt"><b>${t('Pinned · Mummy', 'पिन किया · मम्मी')}</b><span>${esc(ctx.greeting)}: ${HI
+          ? (ctx.events.length > 1 ? `सारे ${ctx.events.length} फ़ंक्शन यहाँ हैं` : 'सारी जानकारी यहाँ है')
+          : `all ${ctx.events.length > 1 ? `${ctx.events.length} functions` : 'details'} here`} 💌</span></span>
+        ${STATIC ? '' : `<span class="chat-pin-go">${t('View', 'देखें')}</span>`}`;
 
       root.innerHTML = `
         <div class="chat-app${STATIC ? ' chat-static' : ''}">
@@ -230,28 +242,28 @@
             <span class="chat-back" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <span class="chat-gav" aria-hidden="true">💍</span>
             <div class="chat-ttl">
-              <h1>Aggarwal Parivar 💍</h1>
+              <h1>${GROUP}</h1>
               <p class="chat-sub">${esc(MEMBERS)}</p>
             </div>
           </header>
-          ${STATIC ? `<div class="chat-pin">${pinInner}</div>` : `<button type="button" class="chat-pin" aria-label="Open pinned message with all details">${pinInner}</button>`}
+          ${STATIC ? `<div class="chat-pin">${pinInner}</div>` : `<button type="button" class="chat-pin" aria-label="${t('Open pinned message with all details', 'सारी जानकारी वाला पिन मैसेज खोलें')}">${pinInner}</button>`}
           <div class="chat-scroll">
-            <div class="chat-thread" role="log" aria-live="polite" aria-label="Family group chat"></div>
+            <div class="chat-thread" role="log" aria-live="polite" aria-label="${t('Family group chat', 'फ़ैमिली ग्रुप चैट')}"></div>
           </div>
           ${STATIC ? '' : `
           <div class="chat-skipwrap">
-            <span class="chat-hint">Tap the chat to speed up</span>
-            <button type="button" class="chat-skip">Skip to details ⏭</button>
+            <span class="chat-hint">${t('Tap the chat to speed up', 'जल्दी देखने के लिए चैट पर टैप करें')}</span>
+            <button type="button" class="chat-skip">${t('Skip to details ⏭', 'सीधे विवरण देखें ⏭')}</button>
           </div>`}
           <footer class="chat-bar">
-            ${STATIC ? '' : `<div class="chat-chips" role="group" aria-label="Quick replies">
-              <button type="button" class="chat-chip" data-reply="yes">🙏 Zaroor aayenge</button>
-              ${has('engagement') ? '<button type="button" class="chat-chip" data-reply="sangeet">💃 Ready for Sangeet</button>' : ''}
-              <a class="chat-chip" data-reply="dir" href="${esc(firstMap)}" target="_blank" rel="noopener">📍 Directions</a>
-              <button type="button" class="chat-chip" data-reply="cal" data-inv-cal>📅 Save the date</button>
+            ${STATIC ? '' : `<div class="chat-chips" role="group" aria-label="${t('Quick replies', 'झटपट जवाब')}">
+              <button type="button" class="chat-chip" data-reply="yes">🙏 ${t('Zaroor aayenge', 'ज़रूर आएँगे')}</button>
+              ${has('engagement') ? `<button type="button" class="chat-chip" data-reply="sangeet">💃 ${t('Ready for Sangeet', 'संगीत के लिए तैयार')}</button>` : ''}
+              <a class="chat-chip" data-reply="dir" href="${esc(firstMap)}" target="_blank" rel="noopener">📍 ${t('Directions', 'रास्ता')}</a>
+              <button type="button" class="chat-chip" data-reply="cal" data-inv-cal>📅 ${t('Save the date', 'तारीख़ सेव करें')}</button>
             </div>`}
             <div class="chat-input" aria-hidden="true">
-              <span class="chat-input-box"><span class="chat-input-emo">😊</span><span class="chat-input-ph">Message</span></span>
+              <span class="chat-input-box"><span class="chat-input-emo">😊</span><span class="chat-input-ph">${t('Message', 'मैसेज')}</span></span>
               <span class="chat-send"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 12l16-8-6 16-2.5-6.5L4 12z" fill="currentColor"/></svg></span>
             </div>
           </footer>
@@ -303,11 +315,12 @@
       function showTyping(who) {
         hideTyping();
         const w = WHO[who];
-        sub.textContent = `${who === 'couple' ? P.groom : w.name} is typing…`;
+        sub.textContent = HI ? `${who === 'couple' ? P.groom : w.name} ${w.f ? 'लिख रही हैं' : 'लिख रहे हैं'}…`
+          : `${who === 'couple' ? P.groom : w.name} is typing…`;
         sub.classList.add('is-typing');
         const d = document.createElement('div');
         d.className = 'chat-row chat-in chat-typing' + (RM ? '' : ' chat-pop');
-        d.innerHTML = `${av(who)}<div class="chat-b"><span class="chat-dots" aria-label="${esc(w.name)} is typing"><i></i><i></i><i></i></span></div>`;
+        d.innerHTML = `${av(who)}<div class="chat-b"><span class="chat-dots" aria-label="${esc(w.name)} ${t('is typing', 'लिख रहे हैं')}"><i></i><i></i><i></i></span></div>`;
         thread.appendChild(d);
         typingNode = d;
         toBottom(true);
@@ -379,7 +392,7 @@
       function playVoice(btn) {
         if (!btn || btn.classList.contains('is-playing')) return;
         btn.classList.add('is-playing');
-        btn.setAttribute('aria-label', 'Playing voice note');
+        btn.setAttribute('aria-label', t('Playing voice note', 'वॉइस नोट चल रहा है'));
         ctx.sound.play('dhol');
         const t1 = setTimeout(() => ctx.sound.play('dhol'), 850);
         const t2 = setTimeout(() => ctx.sound.play('dhol'), 1700);
@@ -391,12 +404,17 @@
           btn.classList.remove('is-playing');
           btn.classList.add('is-played');
           dur.textContent = '0:07';
-          btn.setAttribute('aria-label', 'Play voice note again');
+          btn.setAttribute('aria-label', t('Play voice note again', 'वॉइस नोट फिर से चलाएँ'));
         }, 2600);
       }
 
       /* quick replies */
-      const REPLIES = {
+      const REPLIES = HI ? {
+        yes: { text: '🙏 ज़रूर आएँगे!', snd: 'pop', badge: '🥰', reply: 'वाह! 🥰 इंतज़ार रहेगा' },
+        sangeet: { text: '💃 संगीत के लिए तैयार!', snd: 'dhol', badge: '💃', reply: 'बुआ जी के साथ डांस-ऑफ़ पक्का 😄💃' },
+        dir: { text: '📍 रास्ता भेजो', snd: 'pop', badge: '👍', reply: 'लोकेशन ऊपर हर कार्ड में है 📍 सीधे आ जाना!' },
+        cal: { text: '📅 तारीख़ सेव कर ली!', snd: null, badge: '❤️', reply: 'शाबाश! भूलना मत 😄📅' },
+      } : {
         yes: { text: '🙏 Zaroor aayenge!', snd: 'pop', badge: '🥰', reply: 'Yayyy! 🥰 Intezaar rahega' },
         sangeet: { text: '💃 Ready for Sangeet!', snd: 'dhol', badge: '💃', reply: 'Bua ji ke saath dance-off pakka 😄💃' },
         dir: { text: '📍 Directions bhejo', snd: 'pop', badge: '👍', reply: 'Location upar har card mein hai 📍 Seedha aa jaana!' },
@@ -415,7 +433,7 @@
         setTimeout(() => {
           const b = document.createElement('span');
           b.className = 'chat-react' + (RM ? '' : ' chat-pop');
-          b.setAttribute('aria-label', 'Mummy reacted ' + r.badge);
+          b.setAttribute('aria-label', t('Mummy reacted ', 'मम्मी की प्रतिक्रिया ') + r.badge);
           b.textContent = r.badge;
           node.querySelector('.chat-b').appendChild(b);
           if (!running) showTyping('mummy');
@@ -437,22 +455,22 @@
           sheet.className = 'chat-sheet';
           sheet.setAttribute('role', 'dialog');
           sheet.setAttribute('aria-modal', 'true');
-          sheet.setAttribute('aria-label', 'Group info');
+          sheet.setAttribute('aria-label', t('Group info', 'ग्रुप की जानकारी'));
           sheet.innerHTML = `
-            <div class="chat-sheet-top"><button type="button" class="chat-sheet-back">‹ Back to chat</button><span>Group info</span></div>
+            <div class="chat-sheet-top"><button type="button" class="chat-sheet-back">${t('‹ Back to chat', '‹ चैट पर वापस')}</button><span>${t('Group info', 'ग्रुप की जानकारी')}</span></div>
             <div class="chat-sheet-body">
               <div class="chat-gi">
                 <span class="chat-gi-av" aria-hidden="true">💍</span>
-                <h2>Aggarwal Parivar 💍</h2>
-                <p>Group · 6 members</p>
+                <h2>${GROUP}</h2>
+                <p>${t('Group · 6 members', 'ग्रुप · 6 सदस्य')}</p>
               </div>
-              <p class="chat-sheet-lbl">📌 Pinned by Mummy</p>
+              <p class="chat-sheet-lbl">📌 ${t('Pinned by Mummy', 'मम्मी ने पिन किया')}</p>
               <p class="chat-sheet-greet">${esc(ctx.greeting)},</p>
               ${ctx.summaryHTML()}
-              <p class="chat-sheet-lbl">Members</p>
+              <p class="chat-sheet-lbl">${t('Members', 'सदस्य')}</p>
               <ul class="chat-members">
-                ${['mummy', 'papa', 'bua', 'chachu', 'nilaksh'].map(w => `<li>${av(w)}<span>${esc(WHO[w].name)}</span>${w === 'mummy' ? '<em>Group admin</em>' : ''}</li>`).join('')}
-                <li><span class="chat-av" style="--c:#c98a12" aria-hidden="true">★</span><span>You${guestName ? ` (${esc(guestName)})` : ''}</span><em>Special guest</em></li>
+                ${['mummy', 'papa', 'bua', 'chachu', 'nilaksh'].map(w => `<li>${av(w)}<span>${esc(WHO[w].name)}</span>${w === 'mummy' ? `<em>${t('Group admin', 'ग्रुप एडमिन')}</em>` : ''}</li>`).join('')}
+                <li><span class="chat-av" style="--c:#c98a12" aria-hidden="true">★</span><span>${t('You', 'आप')}${guestName ? ` (${esc(guestName)})` : ''}</span><em>${t('Special guest', 'ख़ास मेहमान')}</em></li>
               </ul>
             </div>`;
           app.appendChild(sheet);
@@ -495,21 +513,21 @@
       intro.innerHTML = `
         <div class="chat-toran" aria-hidden="true"></div>
         <div class="chat-intro-in">
-          <p class="chat-intro-app"><span class="chat-logo" aria-hidden="true">✉</span> Chitthi</p>
+          <p class="chat-intro-app"><span class="chat-logo" aria-hidden="true">✉</span> ${t('Chitthi', 'चिट्ठी')}</p>
           <div class="chat-notif">
             <span class="chat-gav" aria-hidden="true">💍</span>
             <div class="chat-notif-txt">
-              <p class="chat-notif-top"><b>Aggarwal Parivar 💍</b><span>now</span></p>
-              <p>Mummy: <span class="chat-at">@${esc(guestName || 'everyone')}</span> 🙏 you are invited!</p>
+              <p class="chat-notif-top"><b>${GROUP}</b><span>${t('now', 'अभी')}</span></p>
+              <p>${t('Mummy', 'मम्मी')}: <span class="chat-at">@${at}</span> 🙏 ${t('you are invited!', 'आप आमंत्रित हैं!')}</p>
             </div>
           </div>
-          <p class="chat-notif-more">+ ${msgCount - 1} more messages</p>
+          <p class="chat-notif-more">+ ${msgCount - 1} ${t('more messages', 'और मैसेज')}</p>
           <h1 class="chat-intro-greet">${esc(ctx.greeting)}</h1>
-          <p class="chat-intro-line">Family group mein aapke liye ek khaas message hai 💌</p>
-          <p class="chat-intro-couple">${esc(P.groom)} <span>&amp;</span> ${esc(P.bride)}</p>
+          <p class="chat-intro-line">${t('Family group mein aapke liye ek khaas message hai 💌', 'फ़ैमिली ग्रुप में आपके लिए एक ख़ास मैसेज है 💌')}</p>
+          <p class="chat-intro-couple">${esc(P.groom)} <span>${t('&amp;', 'संग')}</span> ${esc(P.bride)}</p>
           <p class="chat-intro-occ">${esc(ctx.occasion.title)}</p>
-          <button type="button" class="chat-open">Open chat 💬</button>
-          <button type="button" class="chat-intro-skip">Skip to details</button>
+          <button type="button" class="chat-open">${t('Open chat 💬', 'चैट खोलें 💬')}</button>
+          <button type="button" class="chat-intro-skip">${t('Skip to details', 'सीधे विवरण देखें')}</button>
         </div>`;
       app.appendChild(intro);
 

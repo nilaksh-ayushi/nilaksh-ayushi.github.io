@@ -22,7 +22,7 @@
     2 * (1 - t) * (c[0] - a[0]) + 2 * t * (b[0] - c[0]));
 
   /* ---------- henna pattern builder ---------- */
-  function buildHenna() {
+  function buildHenna(name) {   // name: the groom's name hidden in the paisley (Devanagari in Hindi mode)
     const out = [];
     let clipN = 0;
     const defs = [];
@@ -212,8 +212,8 @@
     s('M -30 -6 Q -33 2 -28 7', 0.8, 4250, 300);
     for (let i = 0; i < 7; i++) dot(-18 + i * 7.5, -11 - (i > 4 ? (i - 4) * 1.5 : 0), 0.7, 4350 + i * 40);
     s('M 24 -9 Q 31 -14 36 -12', 0.8, 4400, 300);
-    out.push('<text class="mehendi-nameglow" x="-1" y="5" transform="rotate(-5)" text-anchor="middle">Nilaksh</text>');
-    out.push('<text class="mehendi-name mehendi-f" x="-1" y="5" transform="rotate(-5)" text-anchor="middle" data-t="4250" data-d="700">Nilaksh</text>');
+    out.push(`<text class="mehendi-nameglow" x="-1" y="5" transform="rotate(-5)" text-anchor="middle">${name}</text>`);
+    out.push(`<text class="mehendi-name mehendi-f" x="-1" y="5" transform="rotate(-5)" text-anchor="middle" data-t="4250" data-d="700">${name}</text>`);
     out.push('</g>');
 
     /* wrist cuff */
@@ -244,15 +244,17 @@
   /* ---------- render ---------- */
   function render(root, ctx) {
     const esc = ctx.esc, Pp = ctx.P;
+    const tr = ctx.t, HI = ctx.hi;   // Hindi version (?lang=hi)
+    const WITH_GEET = tr(' · with Geet', ' एवं गीत');
     const auto = /[?&]auto=1\b/.test(location.search);
     const RM = ctx.reducedMotion;
-    const henna = buildHenna();
+    const henna = buildHenna(esc(Pp.groom));
     const hasMeh = ctx.events.some(e => e.id === 'mehandi');
     const occ = ctx.occasion;
 
     const svgArt = `
       <svg class="mehendi-hand" viewBox="${VB.x} ${VB.y} ${VB.w} ${VB.h}" role="img"
-           aria-label="A hand with a fresh mehendi design. The groom's name is hidden somewhere in it.">
+           aria-label="${tr('A hand with a fresh mehendi design. The groom’s name is hidden somewhere in it.', 'ताज़ी मेहंदी लगा हाथ। इसमें दूल्हे का नाम कहीं छुपा है।')}">
         <defs>
           <radialGradient id="mehendi-skin" cx="50%" cy="58%" r="62%">
             <stop offset="0" stop-color="#f9e2d0"/><stop offset=".7" stop-color="#f1cdb4"/><stop offset="1" stop-color="#e6b896"/>
@@ -292,20 +294,20 @@
     const ganesh = (Invite.art && Invite.art.ganesh) ? `<span class="mehendi-ganesh" aria-hidden="true">${Invite.art.ganesh({ size: 52 })}</span>` : '';
 
     const details = `
-      <section class="mehendi-details" id="mehendi-details" aria-label="Invitation details"${ctx.isStatic ? '' : ' hidden'}>
+      <section class="mehendi-details" id="mehendi-details" aria-label="${tr('Invitation details', 'निमंत्रण की जानकारी')}"${ctx.isStatic ? '' : ' hidden'}>
         <div class="mehendi-card">
           <div class="mehendi-up" style="--i:0">${ornament()}</div>
-          <p class="mehendi-bless mehendi-up" style="--i:0">With the divine blessings of<b>${esc(Pp.blessings)}</b></p>
+          <p class="mehendi-bless mehendi-up" style="--i:0">${HI ? `<b>${esc(Pp.blessings)}</b>के आशीर्वाद से` : `With the divine blessings of<b>${esc(Pp.blessings)}</b>`}</p>
           <h2 class="mehendi-title mehendi-up" style="--i:1">
             <span class="mehendi-title-hi" lang="hi">${esc(occ.titleHi)}</span>
-            <span class="mehendi-title-en">${esc(occ.title)}</span>
+            ${HI ? '' : `<span class="mehendi-title-en">${esc(occ.title)}</span>`}
           </h2>
-          ${hasMeh ? '<p class="mehendi-with mehendi-up" style="--i:2">with Geet</p>' : ''}
+          ${hasMeh ? `<p class="mehendi-with mehendi-up" style="--i:2">${tr('with Geet', 'एवं गीत')}</p>` : ''}
           <span class="mehendi-rule mehendi-up" style="--i:3" aria-hidden="true"></span>
           <p class="mehendi-hosts mehendi-up" style="--i:3">${esc(Pp.groomParents)}</p>
           <p class="mehendi-line mehendi-up" style="--i:3">${esc(occ.line)}</p>
-          <p class="mehendi-couple mehendi-up" style="--i:4"><span>${esc(Pp.groom)}</span><em>with</em><span>${esc(Pp.bride)}</span></p>
-          <p class="mehendi-bride mehendi-up" style="--i:4">Daughter of ${esc(Pp.brideParents)}</p>
+          <p class="mehendi-couple mehendi-up" style="--i:4"><span>${esc(Pp.groom)}</span><em>${tr('with', 'संग')}</em><span>${esc(Pp.bride)}</span></p>
+          <p class="mehendi-bride mehendi-up" style="--i:4">${tr('Daughter of', 'सुपुत्री')} ${esc(Pp.brideParents)}</p>
           <div class="mehendi-sum mehendi-up" style="--i:5">${ctx.summaryHTML({ heading: false })}</div>
           <div class="mehendi-up" style="--i:6">${ornament('is-foot')}</div>
         </div>
@@ -317,11 +319,11 @@
           <section class="mehendi-stage">
             <p class="mehendi-om" lang="hi">${esc(ctx.T.ganeshShort)}</p>
             ${ganesh}
-            <p class="mehendi-kicker">${esc(occ.title)}${hasMeh ? ' · with Geet' : ''}</p>
+            <p class="mehendi-kicker">${esc(occ.title)}${hasMeh ? WITH_GEET : ''}</p>
             <h1 class="mehendi-greet">${esc(ctx.greeting)},</h1>
-            <p class="mehendi-prompt">the groom’s name is hidden in this mehendi. Can you spot it? 🔍</p>
+            <p class="mehendi-prompt">${tr('the groom’s name is hidden in this mehendi. Can you spot it? 🔍', 'इस मेहंदी में दूल्हे का नाम छुपा है। क्या आप ढूँढ सकते हैं? 🔍')}</p>
             <div class="mehendi-handwrap is-found is-static">${svgArt}</div>
-            <p class="mehendi-caption">Found it? It’s <b>${esc(Pp.groom)}</b>, curled up in a paisley ✨</p>
+            <p class="mehendi-caption">${HI ? `मिला? यह रहे <b>${esc(Pp.groom)}</b>, कैरी के डिज़ाइन में छुपे ✨` : `Found it? It’s <b>${esc(Pp.groom)}</b>, curled up in a paisley ✨`}</p>
           </section>
           ${details}
         </div>`;
@@ -336,9 +338,9 @@
         <section class="mehendi-stage">
           <p class="mehendi-om" lang="hi">${esc(ctx.T.ganeshShort)}</p>
             ${ganesh}
-            <p class="mehendi-kicker">${esc(occ.title)}${hasMeh ? ' · with Geet' : ''}</p>
+            <p class="mehendi-kicker">${esc(occ.title)}${hasMeh ? WITH_GEET : ''}</p>
           <h1 class="mehendi-greet">${esc(ctx.greeting)},</h1>
-          <p class="mehendi-prompt">can you find the groom’s name hidden in this mehendi? 🔍</p>
+          <p class="mehendi-prompt">${tr('can you find the groom’s name hidden in this mehendi? 🔍', 'क्या आप इस मेहंदी में छुपा दूल्हे का नाम ढूँढ सकते हैं? 🔍')}</p>
           <div class="mehendi-handwrap">
             ${svgArt}
             <div class="mehendi-lens" aria-hidden="true">
@@ -347,10 +349,10 @@
             <div class="mehendi-fx" aria-hidden="true"></div>
             <div class="mehendi-toast" role="status" aria-live="polite"></div>
           </div>
-          <p class="mehendi-hint" aria-live="polite">Fresh mehendi going on… ✍️</p>
+          <p class="mehendi-hint" aria-live="polite">${tr('Fresh mehendi going on… ✍️', 'ताज़ी मेहंदी लग रही है… ✍️')}</p>
           <div class="mehendi-ctrls">
-            <button type="button" class="mehendi-btn mehendi-show" hidden>Show me 🙈</button>
-            <button type="button" class="mehendi-btn mehendi-skip">Skip to details ↓</button>
+            <button type="button" class="mehendi-btn mehendi-show" hidden>${tr('Show me 🙈', 'दिखा दो 🙈')}</button>
+            <button type="button" class="mehendi-btn mehendi-skip">${tr('Skip to details ↓', 'सीधे विवरण देखें ↓')}</button>
           </div>
         </section>
         ${details}
@@ -374,7 +376,7 @@
       strokes.forEach(p => { p.style.transition = 'none'; p.style.strokeDashoffset = '0'; p.style.strokeDasharray = 'none'; });
       fades.forEach(f => { f.style.transition = 'none'; f.style.opacity = ''; });
       state = 'play';
-      hint.textContent = 'Tap where you spot it 👆 · hold & drag to magnify';
+      hint.textContent = tr('Tap where you spot it 👆 · hold & drag to magnify', 'जहाँ दिखे वहाँ टैप करें 👆 · बड़ा देखने के लिए दबाकर घुमाएँ');
       wrap.classList.add('is-ready');
     }
     function startDrawing() {
@@ -466,8 +468,14 @@
       }
     }
     function hintFor(h) {
-      if (h.dist < 95) return 'So close! 🔥 It’s right around there…';
-      const v = Math.abs(h.dy) > Math.abs(h.dx) ? (h.dy > 0 ? 'lower' : 'higher') : (h.dx > 0 ? 'to the right' : 'to the left');
+      if (h.dist < 95) return tr('So close! 🔥 It’s right around there…', 'बहुत पास! 🔥 बस यहीं कहीं है…');
+      const v = Math.abs(h.dy) > Math.abs(h.dx) ? (h.dy > 0 ? tr('lower', 'नीचे') : tr('higher', 'ऊपर')) : (h.dx > 0 ? tr('to the right', 'दाईं ओर') : tr('to the left', 'बाईं ओर'));
+      if (HI) {
+        if (misses === 1) return `यहाँ नहीं… थोड़ा ${v} देखिए 👀`;
+        if (misses === 2) return `ठंडा ❄️ थोड़ा ${v} देखिए…`;
+        if (misses === 3) return `श्श्श… कैरी में राज़ छुपे होते हैं 🌿 ${v} देखिए।`;
+        return `गरम हो रहा है… ${v} जाइए 👀`;
+      }
       if (misses === 1) return `Not there… try a little ${v} 👀`;
       if (misses === 2) return `Cold ❄️ Look a bit ${v}…`;
       if (misses === 3) return `Psst… paisleys keep secrets 🌿 Look ${v}.`;
@@ -494,12 +502,14 @@
       sparkles(r.left + r.width / 2, r.top + r.height / 2);
       ctx.sound.play(how === 'tap' ? 'success' : 'chime');
       toast.innerHTML = how === 'tap'
-        ? `<b>Mil gaya! 🎉</b><span>Psst… ${esc(Pp.bride)}’s mehendi will have a harder one 😉</span>`
-        : `<b>Yeh raha! 👀</b><span>${esc(Pp.groom)} was hiding in the paisley. ${esc(Pp.bride)}’s will be trickier 😉</span>`;
+        ? (HI ? `<b>मिल गया! 🎉</b><span>श्श्श… ${esc(Pp.bride)} की मेहंदी में नाम ढूँढना और मुश्किल होगा 😉</span>`
+          : `<b>Mil gaya! 🎉</b><span>Psst… ${esc(Pp.bride)}’s mehendi will have a harder one 😉</span>`)
+        : HI ? `<b>यह रहे! 👀</b><span>${esc(Pp.groom)} कैरी में छुपे थे। ${esc(Pp.bride)} की मेहंदी में और मुश्किल होगा 😉</span>`
+          : `<b>Yeh raha! 👀</b><span>${esc(Pp.groom)} was hiding in the paisley. ${esc(Pp.bride)}’s will be trickier 😉</span>`;
       toast.classList.add('is-on');
       showBtn.hidden = true;
-      hint.textContent = how === 'tap' ? 'Sharp eyes! 👏 The details are just below ↓' : 'The details are just below ↓';
-      skipBtn.textContent = 'See the details ↓';
+      hint.textContent = how === 'tap' ? tr('Sharp eyes! 👏 The details are just below ↓', 'तेज़ नज़र! 👏 पूरी जानकारी नीचे है ↓') : tr('The details are just below ↓', 'पूरी जानकारी नीचे है ↓');
+      skipBtn.textContent = tr('See the details ↓', 'जानकारी देखें ↓');
       later(() => bloom(true), RM ? 600 : 1900);
     }
 
@@ -568,7 +578,7 @@
       const h = nameHit(e.clientX, e.clientY);
       if (h.hit) { found('tap'); return; }
       if (!wasLens || moved < 12) miss(e.clientX, e.clientY);
-      else hint.textContent = 'Lift your finger right on the name to claim it 🔍';
+      else hint.textContent = tr('Lift your finger right on the name to claim it 🔍', 'नाम के ठीक ऊपर उँगली उठाइए 🔍');
     }
     svg.addEventListener('pointerup', e => up(e, false));
     svg.addEventListener('pointercancel', e => up(e, true));
@@ -581,8 +591,8 @@
         state = 'found';
         wrap.classList.add('is-found');
         showBtn.hidden = true;
-        hint.textContent = `Psst… it was here: ${Pp.groom} 💛`;
-        skipBtn.textContent = 'See the details ↓';
+        hint.textContent = tr(`Psst… it was here: ${Pp.groom} 💛`, `श्श्श… नाम यहाँ था: ${Pp.groom} 💛`);
+        skipBtn.textContent = tr('See the details ↓', 'जानकारी देखें ↓');
       }
       bloom(true);
     });

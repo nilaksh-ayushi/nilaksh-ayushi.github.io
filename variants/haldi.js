@@ -22,6 +22,22 @@
     bhaat: 'A sister’s joy doubles when her brother stands by her side to bless her son.',
   };
   const FALLBACK = 'Come with love, leave with blessings 💛';
+  // Hindi version (?lang=hi)
+  const QUIPS_HI = {
+    bhaat: 'मामा जी आशीर्वाद और उपहार लेकर आ रहे हैं 🎁',
+    haldi: 'थोड़ी हल्दी, थोड़ा आशीर्वाद और ढेर सारा प्यार 💛',
+    sunderkand: 'बड़े दिनों से पहले हनुमान जी का आशीर्वाद 🙏',
+    mehandi: 'मेहंदी, गीत और डिज़ाइन में छुपा एक नाम 🌿',
+    engagement: 'अंगूठियाँ, ताल और कभी न थमने वाला डांस फ़्लोर 💍',
+    ghudchadi: 'सेहरा सजा, घोड़ी तैयार, दूल्हा चमक रहा है 🐎',
+    baraat: 'ढोल बजेगा, सब नाचेंगे 🥁',
+    dinner: 'दावत का पूरा इंतज़ाम 🍽️',
+    vidaai: 'तारों की छाँव में, भरे दिल से ✨',
+  };
+  const SUBS_HI = {
+    bhaat: 'बहन की ख़ुशी दोगुनी हो जाती है, जब उसका भाई उसके बेटे को आशीर्वाद देने उसके साथ खड़ा होता है।',
+  };
+  const FALLBACK_HI = 'प्यार से आइए, आशीर्वाद लेकर जाइए 💛';
   const RAINBOW = ['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#3949ab', '#8e24aa'];
   const TAPS_TO_REVEAL = 8;
   const COVER_TO_REVEAL = 0.6;
@@ -122,17 +138,25 @@
   Invite.register('haldi', {
     render(root, ctx) {
       const esc = ctx.esc, P = ctx.P, S = ctx.isStatic, RM = ctx.reducedMotion;
+      const t = ctx.t, HI = ctx.hi;   // Hindi version (?lang=hi)
+      const quip = e => (HI ? QUIPS_HI[e.id] || FALLBACK_HI : QUIPS[e.id] || FALLBACK);
+      const subOf = e => (HI ? SUBS_HI : SUBS)[e.id];
       const auto = !S && new URLSearchParams(location.search).get('auto') === '1';
       const rand = mulberry32(20261203);
       const isHaldi = ctx.occasion.key === 'haldi';
 
       /* ----- card content (what the splashes reveal) ----- */
       function timeHTML(e) {
+        if (HI) {   // 'प्रातः 10:30 बजे' -> big 10:30, small प्रातः
+          const h = !e.isTimeText && /^(\S+) (\d{1,2}:\d{2}) बजे$/.exec(e.time);
+          return h ? `<b>${esc(h[2])}</b><small>${esc(h[1])}</small>` : `<i>${esc(e.time)}</i>`;
+        }
         const m = !e.isTimeText && /^(\d{1,2}:\d{2})\s*([AP]M)$/i.exec(e.time);
         return m ? `<b>${esc(m[1])}</b><small>${esc(m[2].toUpperCase())}</small>` : `<i>${esc(e.time)}</i>`;
       }
       const allMorning = ctx.days.length === 1 && ctx.events.every(e => e.start && +e.start.slice(0, 2) < 12);
-      const schedTitle = allMorning ? '☀️ Morning schedule' : ctx.days.length > 1 ? '🗓️ Your celebration schedule' : '🗓️ The schedule';
+      const schedTitle = HI ? (allMorning ? '☀️ सुबह के कार्यक्रम' : ctx.days.length > 1 ? '🗓️ आपके उत्सव के कार्यक्रम' : '🗓️ कार्यक्रम')
+        : allMorning ? '☀️ Morning schedule' : ctx.days.length > 1 ? '🗓️ Your celebration schedule' : '🗓️ The schedule';
       const sched = ctx.days.map(d => `
         <div class="haldi-day">
           <p class="haldi-day-h">${esc(d.dateLong)}</p>
@@ -140,18 +164,18 @@
             <div class="haldi-ev">
               <div class="haldi-ev-time">${timeHTML(e)}</div>
               <div class="haldi-ev-body">
-                <p class="haldi-ev-name">${esc(e.name)} <span lang="hi">${esc(e.hi)}</span></p>
-                <p class="haldi-ev-quip">${esc(QUIPS[e.id] || FALLBACK)}</p>
-                ${SUBS[e.id] ? `<p class="haldi-ev-sub">“${esc(SUBS[e.id])}”</p>` : ''}
+                <p class="haldi-ev-name">${esc(e.name)}${HI ? '' : ` <span lang="hi">${esc(e.hi)}</span>`}</p>
+                <p class="haldi-ev-quip">${esc(quip(e))}</p>
+                ${subOf(e) ? `<p class="haldi-ev-sub">“${esc(subOf(e))}”</p>` : ''}
                 <p class="haldi-ev-place"><span aria-hidden="true">📍</span> ${esc(e.place)}${e.note ? ` · <span class="haldi-ev-note">${esc(e.note)}</span>` : ''}</p>
               </div>
             </div>`).join('')}
         </div>`).join('');
       const dressEvs = ctx.events.filter(e => e.dress);
-      const isRainbow = dressEvs.some(e => /rainbow/i.test(e.dress));
+      const isRainbow = dressEvs.some(e => /rainbow/i.test((e.en || e).dress));
       const dress = dressEvs.length ? `
         <div class="haldi-rainbow">
-          <p class="haldi-rainbow-h">${isRainbow ? 'Wear the rainbow 🌈' : 'Dress code 👗'}</p>
+          <p class="haldi-rainbow-h">${isRainbow ? t('Wear the rainbow 🌈', 'इंद्रधनुष के रंग पहनें 🌈') : t('Dress code 👗', 'वेशभूषा 👗')}</p>
           ${isRainbow ? `<div class="haldi-swatches" aria-hidden="true">${RAINBOW.map(c => `<span style="background:${c}"></span>`).join('')}</div>` : ''}
           ${dressEvs.map(e => `<p class="haldi-rainbow-t"><b>${esc(e.name)}:</b> ${esc(e.dress)}</p>`).join('')}
         </div>` : '';
@@ -161,11 +185,11 @@
         <div class="haldi-card-tex" aria-hidden="true">${tex}</div>
         <div class="haldi-card-in">
           <p class="haldi-ganesh" lang="hi">${esc(ctx.T.ganeshShort)}</p>${GANESH()}
-          <h1 class="haldi-title"><span class="haldi-title-hi" lang="hi">${esc(ctx.occasion.titleHi)}</span><span class="haldi-title-en">${esc(ctx.occasion.title)}</span></h1>
-          <p class="haldi-bless"><small>With the divine blessings of</small>${esc(P.blessings)}</p>
+          <h1 class="haldi-title"><span class="haldi-title-hi" lang="hi">${esc(ctx.occasion.titleHi)}</span>${HI ? '' : `<span class="haldi-title-en">${esc(ctx.occasion.title)}</span>`}</h1>
+          <p class="haldi-bless">${HI ? `${esc(P.blessings)}<small>के आशीर्वाद से</small>` : `<small>With the divine blessings of</small>${esc(P.blessings)}`}</p>
           <p class="haldi-hosts"><strong>${esc(P.groomParents)}</strong> ${esc(ctx.occasion.line)}</p>
-          <h2 class="haldi-couple"><span>${esc(P.groom)}</span> <em>&amp;</em> <span>${esc(P.bride)}</span></h2>
-          <p class="haldi-bride">${esc(P.bride)}, daughter of ${esc(P.brideParents)}</p>
+          <h2 class="haldi-couple"><span>${esc(P.groom)}</span> <em>${t('&amp;', 'संग')}</em> <span>${esc(P.bride)}</span></h2>
+          <p class="haldi-bride">${esc(P.bride)}, ${t('daughter of', 'सुपुत्री')} ${esc(P.brideParents)}</p>
           <div class="haldi-sched"><h3 class="haldi-sched-h">${schedTitle}</h3>${sched}</div>
           ${dress}
         </div>`;
@@ -176,36 +200,37 @@
       const roses = [[88, 118, 12, 30], [6, 132, 10, -20], [94, 168, 9, 70]].map(r =>
         `<span class="haldi-rose" style="left:${r[0]}%;top:${r[1]}px;width:${r[2]}px;transform:rotate(${r[3]}deg)">${ROSE}</span>`).join('');
 
-      const subStatic = isHaldi ? 'Haldi lag gayi! Here’s your sunny invitation 💛' : 'Rang lag gaya! Here’s your sunny invitation 💛';
+      const subStatic = HI ? `${isHaldi ? 'हल्दी लग गई!' : 'रंग लग गया!'} यह रहा आपका सुनहरा निमंत्रण 💛`
+        : isHaldi ? 'Haldi lag gayi! Here’s your sunny invitation 💛' : 'Rang lag gaya! Here’s your sunny invitation 💛';
       root.innerHTML = `
         <div class="haldi-stage${S ? ' haldi-static' : ''}">
           ${toranSVG()}
           <div class="haldi-roses" aria-hidden="true">${roses}</div>
           <header class="haldi-head">
             <div class="haldi-head-row">
-              <p class="haldi-kicker">Haldi Splash <span aria-hidden="true">💛</span></p>
-              ${S ? '' : '<button type="button" class="haldi-skip">Skip to details ↓</button>'}
+              <p class="haldi-kicker">${t('Haldi Splash', 'हल्दी की बौछार')} <span aria-hidden="true">💛</span></p>
+              ${S ? '' : `<button type="button" class="haldi-skip">${t('Skip to details ↓', 'सीधे विवरण देखें ↓')}</button>`}
             </div>
             <p class="haldi-greet">${esc(ctx.greeting)},</p>
-            <p class="haldi-sub">${S ? subStatic : 'Something sunny is hiding under this kurta…'}</p>
+            <p class="haldi-sub">${S ? subStatic : t('Something sunny is hiding under this kurta…', 'इस कुर्ते के नीचे कुछ सुनहरा छुपा है…')}</p>
           </header>
           <div class="haldi-cardwrap${S ? ' haldi-revealed' : ''}">
             <div class="haldi-border" aria-hidden="true">${border}</div>
             <article class="haldi-card">${cardHTML}</article>
             ${sprig('haldi-sprig-tr')}${sprig('haldi-sprig-bl')}
-            ${S ? '' : `<canvas class="haldi-cloth" tabindex="0" role="button" aria-label="Plain white kurta cloth. Press to throw a handful of haldi"></canvas>
-            <div class="haldi-hint" aria-hidden="true"><span class="haldi-hand">👆</span><b>Tap to throw haldi! 💛</b><small>or drag across for a big splash</small></div>
+            ${S ? '' : `<canvas class="haldi-cloth" tabindex="0" role="button" aria-label="${t('Plain white kurta cloth. Press to throw a handful of haldi', 'सफ़ेद कुर्ता। मुट्ठी भर हल्दी फेंकने के लिए दबाएँ')}"></canvas>
+            <div class="haldi-hint" aria-hidden="true"><span class="haldi-hand">👆</span><b>${t('Tap to throw haldi! 💛', 'हल्दी फेंकने के लिए टैप करें! 💛')}</b><small>${t('or drag across for a big splash', 'या बड़ी बौछार के लिए उँगली घुमाएँ')}</small></div>
             <div class="haldi-fx" aria-hidden="true"></div>`}
           </div>
           <section class="haldi-details" id="haldi-details"${S ? '' : ' hidden'}>
-            <h2 class="haldi-details-h">The full details</h2>
-            ${S ? '' : '<p class="haldi-details-sub">Directions &amp; calendar, all right here 👇</p>'}
+            <h2 class="haldi-details-h">${t('The full details', 'पूरी जानकारी')}</h2>
+            ${S ? '' : `<p class="haldi-details-sub">${t('Directions &amp; calendar, all right here 👇', 'रास्ता और कैलेंडर, सब यहीं 👇')}</p>`}
             ${ctx.summaryHTML({ heading: false })}
           </section>
         </div>
         ${S ? '' : `
         <div class="haldi-bar">
-          <div class="haldi-bowl" role="progressbar" aria-label="Haldi left in the katori" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+          <div class="haldi-bowl" role="progressbar" aria-label="${t('Haldi left in the katori', 'कटोरी में बची हल्दी')}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
             <svg class="haldi-katori" viewBox="0 0 64 46" aria-hidden="true" focusable="false">
               <defs>
                 <linearGradient id="haldi-brass" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#f6d77a"/><stop offset=".5" stop-color="#c8902a"/><stop offset="1" stop-color="#875610"/></linearGradient>
@@ -218,9 +243,9 @@
               <path d="M14 27Q32 33 50 27" fill="none" stroke="#fbe7a6" stroke-width="1" opacity=".6"/>
               <rect x="22" y="39" width="20" height="5" rx="2.5" fill="#875610"/>
             </svg>
-            <span class="haldi-bowl-txt"><small>Haldi left</small><b>100%</b></span>
+            <span class="haldi-bowl-txt"><small>${t('Haldi left', 'बची हल्दी')}</small><b>100%</b></span>
           </div>
-          <button type="button" class="haldi-all">Splash it all! <span aria-hidden="true">💥</span></button>
+          <button type="button" class="haldi-all">${t('Splash it all!', 'सारी हल्दी उड़ा दो!')} <span aria-hidden="true">💥</span></button>
         </div>`}`;
 
       if (S) {
@@ -396,7 +421,7 @@
           const a = rand() * Math.PI * 2, d = 60 + rand() * 160;
           h += `<i style="--bx:${(Math.cos(a) * d).toFixed(0)}px;--by:${(Math.sin(a) * d * 0.8 - 40).toFixed(0)}px;--sx:${((rand() - 0.5) * 140).toFixed(0)}px;--r:${(rand() * 720 - 360).toFixed(0)}deg;--c:${cols[i % cols.length]};--d:${(1.9 + rand() * 1.4).toFixed(2)}s;--w:${(8 + rand() * 8).toFixed(0)}px"></i>`;
         }
-        layer.innerHTML = h + `<p class="haldi-toast">${isHaldi ? 'Haldi lag gayi!' : 'Rang lag gaya!'} 💛</p>`;
+        layer.innerHTML = h + `<p class="haldi-toast">${isHaldi ? t('Haldi lag gayi!', 'हल्दी लग गई!') : t('Rang lag gaya!', 'रंग लग गया!')} 💛</p>`;
         document.body.appendChild(layer);
         setTimeout(() => layer.remove(), 3800);
       }
@@ -412,7 +437,7 @@
         if (skipBtn) skipBtn.hidden = true;
         details.hidden = false;
         if (!RM && !fast) petals();
-        bar.innerHTML = '<button type="button" class="haldi-all haldi-go">See the full details <span aria-hidden="true">👇</span></button>';
+        bar.innerHTML = `<button type="button" class="haldi-all haldi-go">${t('See the full details', 'पूरी जानकारी देखें')} <span aria-hidden="true">👇</span></button>`;
         bar.querySelector('button').addEventListener('click', () => { ctx.sound.play('tap'); scrollDetails(); });
         const checkBar = () => bar.classList.toggle('haldi-bar-off', details.getBoundingClientRect().top < window.innerHeight * 0.7);
         window.addEventListener('scroll', checkBar, { passive: true });

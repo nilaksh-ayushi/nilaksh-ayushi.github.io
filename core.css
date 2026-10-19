@@ -78,3 +78,10 @@ html.img .inv-sound { display: none; }
 .inv-doodle { display: block; margin: 0 auto; overflow: visible; }
 .inv-ganesh { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; color: inherit; }
 .inv-ganesh p { margin: 0; font: 500 15px/1.4 'Tiro Devanagari Hindi', 'Noto Serif Devanagari', serif; letter-spacing: .02em; }
+
+/* ---------- Hindi mode (html.lang-hi) ---------- */
+/* Letter-spacing pulls Devanagari conjuncts and matras apart, so every template drops it in Hindi. */
+html.lang-hi *, html.lang-hi *::before, html.lang-hi *::after { letter-spacing: normal !important; }
+/* Hindi times ("दोपहर 3:30 बजे") need a wider time column in the details block. */
+html.lang-hi .inv-sum-ev { grid-template-columns: 92px 1fr auto; }
+@media (max-width: 360px) { html.lang-hi .inv-sum-ev { grid-template-columns: 84px 1fr; } }

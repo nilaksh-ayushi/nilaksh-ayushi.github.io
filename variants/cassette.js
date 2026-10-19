@@ -16,6 +16,20 @@
     dinner: 'Dinner (Shahi Daawat Interlude)',
     vidaai: 'Vidaai (Unplugged)',
   };
+  // Hindi version (?lang=hi) of every title above and of the engagement parts below.
+  const TITLES_HI = {
+    'Sunderkand (Live Bhajan Session)': 'सुंदरकांड (लाइव भजन सेशन)',
+    'Mehandi (Geet Acoustic Session)': 'मेहंदी (ढोलक और गीत सेशन)',
+    'Bhaat (Nanihaal Edition)': 'भात (ननिहाल एडिशन)',
+    'Haldi (Yellow Remix)': 'हल्दी (पीला रीमिक्स)',
+    'Sehra Bandi & Ghurchadi (Ghodi Groove)': 'सेहराबंदी एवं घुड़चढ़ी (घोड़ी ग्रूव)',
+    'Baraat (Dhol Version)': 'बारात (ढोल वर्ज़न)',
+    'Dinner (Shahi Daawat Interlude)': 'प्रीतिभोज (शाही दावत)',
+    'Vidaai (Unplugged)': 'विदाई (अनप्लग्ड)',
+    'Sagai (feat. Goad)': 'सगाई (गोद के साथ)',
+    'Cocktail Party (Extended Dance Mix)': 'कॉकटेल पार्टी (एक्सटेंडेड डांस मिक्स)',
+    'Sangeet (Non-Stop Dhamaka Mix)': 'संगीत (नॉन-स्टॉप धमाका मिक्स)',
+  };
   // The engagement evening is split into several tracks that share its time and place.
   const PART_STYLES = {
     sagai: '(Ring Ceremony Edit)',
@@ -34,10 +48,12 @@
     parts.forEach((p, i) => { if (!used[i]) out.push(p + ' ' + (PART_STYLES[low[i]] || '(Live)')); });
     return out;
   }
-  function tracksFor(events) {
+  function tracksFor(events, hi) {
     const out = [];
     events.forEach(ev => {
-      const titles = ev.id === 'engagement' ? engagementTitles(ev.name) : [TRACK_TITLES[ev.id] || ev.name + ' (Live)'];
+      const name = (ev.en || ev).name;   // English name, also in Hindi mode
+      let titles = ev.id === 'engagement' ? engagementTitles(name) : [TRACK_TITLES[ev.id] || name + ' (Live)'];
+      if (hi) titles = titles.map(x => TITLES_HI[x] || x.replace(name, ev.name).replace(' (Live)', ' (लाइव)'));
       titles.forEach((title, k) => out.push({ no: out.length + 1, title, ev, first: k === 0 }));
     });
     return out;
@@ -93,9 +109,10 @@
     const p = 'cassette-' + side + '-';
     const isA = side === 'a';
     const esc = o.esc;
+    const t = o.t;
     const title = isA
-      ? `${esc(o.groom)} <tspan class="cassette-t-heart">♥</tspan> ${esc(o.bride)} · Sangeet Mix ’${esc(o.yy)}`
-      : 'Side B · Dance-floor rules ↓';
+      ? `${esc(o.groom)} <tspan class="cassette-t-heart">♥</tspan> ${esc(o.bride)} · ${t('Sangeet Mix', 'संगीत मिक्स')} ’${esc(o.yy)}`
+      : t('Side B · Dance-floor rules ↓', 'साइड B · डांस फ़्लोर के नियम ↓');
     return `<svg class="cassette-svg" viewBox="0 0 400 256" aria-hidden="true" focusable="false">
       <defs>
         <linearGradient id="${p}shell" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a2848"/><stop offset=".55" stop-color="#2e1830"/><stop offset="1" stop-color="#1c0e1e"/></linearGradient>
@@ -125,9 +142,9 @@
       <text class="cassette-t-side" x="59" y="129" text-anchor="middle" font-size="29">${isA ? 'A' : 'B'}</text>
       <text class="cassette-t-print" x="337" y="116" text-anchor="middle" font-size="18">C-90</text>
       <text class="cassette-t-print2" x="337" y="134" text-anchor="middle" font-size="14">HI-FI</text>
-      <text class="cassette-t-band" x="200" y="159.5" text-anchor="middle" font-size="12.5">${isA ? 'SIDE A · ' + esc(o.band) + ' · STEREO' : 'SIDE B · BONUS TRACKS · STEREO'}</text>
+      <text class="cassette-t-band" x="200" y="159.5" text-anchor="middle" font-size="12.5">${isA ? t('SIDE A · ', 'साइड A · ') + esc(o.band) + t(' · STEREO', ' · स्टीरियो') : t('SIDE B · BONUS TRACKS · STEREO', 'साइड B · बोनस ट्रैक · स्टीरियो')}</text>
       <text class="cassette-t-title" x="200" y="45" text-anchor="middle" font-size="22" data-fit="336" data-min="15" transform="rotate(-1.2 200 38)">${title}</text>
-      <text class="cassette-t-pen" x="34" y="74" font-size="20" data-fit="330" data-min="16.5" data-ellipsis="1" transform="rotate(-.7 34 70)"><tspan class="cassette-t-mf">Made for:</tspan> <tspan class="cassette-t-guest">${esc(o.guest)}</tspan></text>
+      <text class="cassette-t-pen" x="34" y="74" font-size="20" data-fit="330" data-min="16.5" data-ellipsis="1" transform="rotate(-.7 34 70)"><tspan class="cassette-t-mf">${t('Made for:', 'किसके लिए:')}</tspan> <tspan class="cassette-t-guest">${esc(o.guest)}</tspan></text>
       <path d="M86 254L104 202H296L314 254Z" fill="#1a0e1b" stroke="#c9a45c" stroke-opacity=".4"/>
       <circle cx="134" cy="234" r="6" fill="#050205"/><circle cx="266" cy="234" r="6" fill="#050205"/>
       <rect x="164" y="222" width="12" height="12" rx="2" fill="#050205"/><rect x="224" y="222" width="12" height="12" rx="2" fill="#050205"/>
@@ -159,21 +176,31 @@
   Invite.register('cassette', {
     render(root, ctx) {
       const esc = ctx.esc, P = ctx.P;
+      const t_ = ctx.t, HI = ctx.hi;   // Hindi version (?lang=hi). (t is the tape position below.)
       const S = ctx.isStatic, RM = ctx.reducedMotion;
       const AUTO = /[?&]auto=1(?:&|$)/.test(location.search);
-      const tracks = tracksFor(ctx.events);
+      const tracks = tracksFor(ctx.events, HI);
       const N = tracks.length;
-      const guest = ctx.guest || 'Family & Friends';
+      const guest = ctx.guest || t_('Family & Friends', 'परिवारजन एवं मित्रगण');
+      const END_TITLE = t_('END OF SIDE A ✓', 'साइड A समाप्त ✓');
+      const END_INFO = t_('LINER NOTES BELOW ↓ · ◀◀ REWIND TO REPLAY', 'पूरी जानकारी नीचे ↓ · दोबारा सुनने के लिए ◀◀ रिवाइंड');
+      const PRESS = t_('PRESS ▶ PLAY', '▶ प्ले दबाएँ');
+      const TRK = t_('TRK', 'ट्रैक');
+      const EJECT_A = t_('Eject: flip to Side B', 'इजेक्ट: साइड B पर पलटें');
+      const READY_INFO = HI ? `साइड A · ${N} ट्रैक · ${guest} के लिए` : `SIDE A · ${N} TRACK${N > 1 ? 'S' : ''} · MADE FOR ${guest.toUpperCase()}`;
       const d0 = ctx.days[0], dN = ctx.days[ctx.days.length - 1];
       const band = (ctx.days.length === 1 ? d0.dateShort : `${d0.events[0].day} ${d0.mon} – ${dN.events[0].day} ${dN.mon}`).toUpperCase();
       const yy = ctx.events[0].date.slice(2, 4);
-      const svgOpts = { esc, groom: P.groom, bride: P.bride, yy, band, guest };
+      const svgOpts = { esc, t: t_, groom: P.groom, bride: P.bride, yy, band, guest };
       const groomFam = (P.family || '').split(' ')[0];
       const brideFam = (P.brideParents || '').trim().split(/\s+/).pop();
       const dancey = ctx.events.some(e => ['engagement', 'baraat', 'ghudchadi', 'haldi', 'mehandi'].indexOf(e.id) >= 0);
       const ganesh = (window.Invite && Invite.art && Invite.art.ganesh) ? Invite.art.ganesh({ size: 48 }) : '';
       const venues = [];
-      ctx.events.forEach(e => { if (venues.indexOf(e.venueInfo.name) < 0) venues.push(e.venueInfo.name); });
+      ctx.events.forEach(e => {
+        const v = HI && e.venueInfo.hi ? e.venueInfo.hi.name : e.venueInfo.name;
+        if (venues.indexOf(v) < 0) venues.push(v);
+      });
 
       /* ---- J-card track list ---- */
       const trackRow = tr => {
@@ -202,7 +229,7 @@
       if (head && !head.querySelector('.inv-sum-bless') && head.textContent.indexOf(P.blessings) < 0) {
         const bl = document.createElement('p');
         bl.className = 'cassette-bless';
-        bl.innerHTML = `With the divine blessings of<b>${esc(P.blessings)}</b>`;
+        bl.innerHTML = HI ? `<b>${esc(P.blessings)}</b>के आशीर्वाद से` : `With the divine blessings of<b>${esc(P.blessings)}</b>`;
         const hosts = head.querySelector('.inv-sum-hosts');
         if (hosts) head.insertBefore(bl, hosts); else head.insertBefore(bl, head.firstChild);
       }
@@ -212,52 +239,59 @@
 
       const credits = `
         <dl class="cassette-credits">
-          <div><dt>Lead vocals</dt><dd>${esc(P.groom)} &amp; ${esc(P.bride)}</dd></div>
-          <div><dt>Executive producers</dt><dd>The ${esc(groomFam)} &amp; ${esc(brideFam)} families</dd></div>
-          <div><dt>Recorded live at</dt><dd>${venues.map(esc).join(' &amp; ')}</dd></div>
-          <div><dt>Backing vocals</dt><dd>All of you, very loudly ♥</dd></div>
+          <div><dt>${t_('Lead vocals', 'मुख्य गायक')}</dt><dd>${esc(P.groom)} ${t_('&amp;', 'और')} ${esc(P.bride)}</dd></div>
+          <div><dt>${t_('Executive producers', 'निर्माता')}</dt><dd>${HI ? `${esc(groomFam)} एवं ${esc(brideFam)} परिवार` : `The ${esc(groomFam)} &amp; ${esc(brideFam)} families`}</dd></div>
+          <div><dt>${t_('Recorded live at', 'लाइव रिकॉर्डिंग')}</dt><dd>${venues.map(esc).join(t_(' &amp; ', ' एवं '))}</dd></div>
+          <div><dt>${t_('Backing vocals', 'कोरस')}</dt><dd>${t_('All of you, very loudly ♥', 'आप सब, ज़ोर-ज़ोर से ♥')}</dd></div>
         </dl>`;
 
       const sideB = `
         <div class="cassette-bnote" aria-hidden="true">
           <div class="cassette-bnote-paper">
-            <h2>Side B · Dance-floor rules</h2>
+            ${HI ? `<h2>साइड B · डांस फ़्लोर के नियम</h2>
+            <ol>
+              <li>कोई बैठेगा नहीं। कुर्सियाँ सिर्फ़ सजावट के लिए हैं।</li>
+              <li>अंकल जी का सोलो डांस ज़रूरी है।</li>
+              <li>हर गाना “बस, आख़िरी गाना” है।</li>
+              <li>जूते मर्ज़ी से, मुस्कान ज़रूरी।</li>
+            </ol>
+            <p class="cassette-bnote-sign">मैनेजमेंट (मम्मी जी)</p>` : `<h2>Side B · Dance-floor rules</h2>
             <ol>
               <li>No sitting. The chairs are only for decoration.</li>
               <li>Uncle ji ka solo is mandatory.</li>
               <li>Every song is “bas, last song”.</li>
               <li>Shoes optional, smiles compulsory.</li>
             </ol>
-            <p class="cassette-bnote-sign">The Management (Mummy ji)</p>
+            <p class="cassette-bnote-sign">The Management (Mummy ji)</p>`}
           </div>
         </div>`;
 
       const deck = `
-        <section class="cassette-deck" aria-label="Cassette player">
+        <section class="cassette-deck" aria-label="${t_('Cassette player', 'कैसेट प्लेयर')}">
           <div class="cassette-deck-top">
-            <span class="cassette-brand">BAJAO<b>·90</b></span>
-            <span class="cassette-brand-sub">Stereo cassette deck · Auto-reverse</span>
+            <span class="cassette-brand">${t_('BAJAO', 'बजाओ')}<b>·90</b></span>
+            <span class="cassette-brand-sub">${t_('Stereo cassette deck · Auto-reverse', 'स्टीरियो कैसेट डेक · ऑटो-रिवर्स')}</span>
             <span class="cassette-led" aria-hidden="true"></span>
           </div>
           <div class="cassette-lcd">
             <div class="cassette-lcd-row">
               <span class="cassette-lcd-state" aria-hidden="true">■</span>
-              <span class="cassette-lcd-label">NOW PLAYING</span>
-              <span class="cassette-lcd-trk">TRK --/${pad2(N)}</span>
+              <span class="cassette-lcd-label">${t_('NOW PLAYING', 'अभी बज रहा है')}</span>
+              <span class="cassette-lcd-trk">${TRK} --/${pad2(N)}</span>
               <span class="cassette-lcd-time">0:00</span>
             </div>
-            <div class="cassette-lcd-line cassette-lcd-title"><span>PRESS ▶ PLAY</span></div>
-            <div class="cassette-lcd-line cassette-lcd-info"><span>SIDE A · ${N} TRACK${N > 1 ? 'S' : ''} · MADE FOR ${esc(guest.toUpperCase())}</span></div>
+            <div class="cassette-lcd-line cassette-lcd-title"><span>${PRESS}</span></div>
+            <div class="cassette-lcd-line cassette-lcd-info"><span>${esc(READY_INFO)}</span></div>
           </div>
           <div class="cassette-vu" aria-hidden="true">
             <div class="cassette-vu-row"><span>L</span><i><b></b></i></div>
             <div class="cassette-vu-row"><span>R</span><i><b></b></i></div>
           </div>
           <div class="cassette-keys">
-            <button type="button" class="cassette-key cassette-key-rew" data-k="rew" aria-label="Rewind and replay">${ICONS.rew}<span>Rewind</span></button>
-            <button type="button" class="cassette-key cassette-key-play" data-k="play" aria-label="Play" aria-pressed="false">${ICONS.play}<span>PLAY</span></button>
-            <button type="button" class="cassette-key cassette-key-pause" data-k="pause" aria-label="Pause" aria-pressed="false">${ICONS.pause}<span>Pause</span></button>
-            <button type="button" class="cassette-key cassette-key-eject" data-k="eject" aria-label="Eject: flip to Side B">${ICONS.eject}<span>Eject</span></button>
+            <button type="button" class="cassette-key cassette-key-rew" data-k="rew" aria-label="${t_('Rewind and replay', 'रिवाइंड करके फिर से सुनें')}">${ICONS.rew}<span>${t_('Rewind', 'रिवाइंड')}</span></button>
+            <button type="button" class="cassette-key cassette-key-play" data-k="play" aria-label="${t_('Play', 'प्ले')}" aria-pressed="false">${ICONS.play}<span>${t_('PLAY', 'प्ले')}</span></button>
+            <button type="button" class="cassette-key cassette-key-pause" data-k="pause" aria-label="${t_('Pause', 'पॉज़')}" aria-pressed="false">${ICONS.pause}<span>${t_('Pause', 'पॉज़')}</span></button>
+            <button type="button" class="cassette-key cassette-key-eject" data-k="eject" aria-label="${EJECT_A}">${ICONS.eject}<span>${t_('Eject', 'इजेक्ट')}</span></button>
           </div>
         </section>`;
 
@@ -265,11 +299,13 @@
         <div class="cassette-wrap${S ? ' is-static' : ''}">
           <div class="cassette-grain" aria-hidden="true"></div>
           ${lightsSVG()}
-          ${S ? '' : '<button type="button" class="cassette-skip">Skip to details ↓</button>'}
+          ${S ? '' : `<button type="button" class="cassette-skip">${t_('Skip to details ↓', 'सीधे विवरण देखें ↓')}</button>`}
           <header class="cassette-head">
-            <p class="cassette-kicker">Shaadi Records presents</p>
+            <p class="cassette-kicker">${t_('Shaadi Records presents', 'शादी रिकॉर्ड्स पेश करते हैं')}</p>
             <h1 class="cassette-greet${ctx.greeting.length > 30 ? ' is-long' : ''}">${esc(ctx.greeting)}</h1>
-            <p class="cassette-sub">${S ? 'We made you a mixtape. Side A is our ' + esc(ctx.occasion.title) + '.' : 'We made you a mixtape. Press ▶ Play.'}</p>
+            <p class="cassette-sub">${HI
+              ? (S ? `हमने आपके लिए एक मिक्सटेप बनाई है। साइड A पर है: ${esc(ctx.occasion.title)}।` : 'हमने आपके लिए एक मिक्सटेप बनाई है। ▶ प्ले दबाएँ।')
+              : S ? 'We made you a mixtape. Side A is our ' + esc(ctx.occasion.title) + '.' : 'We made you a mixtape. Press ▶ Play.'}</p>
           </header>
           <div class="cassette-flip">
             <div class="cassette-card">
@@ -278,17 +314,17 @@
             </div>
           </div>
           ${S ? '' : sideB + deck}
-          <section class="cassette-jcard" aria-label="Track list and liner notes">
+          <section class="cassette-jcard" aria-label="${t_('Track list and liner notes', 'ट्रैक लिस्ट और पूरी जानकारी')}">
             <div class="cassette-panel cassette-panel-cover">
-              <div class="cassette-spine" aria-hidden="true"><span>Sangeet Mix ’${esc(yy)}</span></div>
+              <div class="cassette-spine" aria-hidden="true"><span>${t_('Sangeet Mix', 'संगीत मिक्स')} ’${esc(yy)}</span></div>
               <div class="cassette-cover-body">
                 <div class="cassette-cover-head">
-                  <span class="cassette-cover-side">Side A</span>
+                  <span class="cassette-cover-side">${t_('Side A', 'साइड A')}</span>
                   <span class="cassette-cover-hi" lang="hi">${esc(ctx.occasion.titleHi)}</span>
                 </div>
-                <p class="cassette-cover-mix">${esc(ctx.occasion.title)} · the track list</p>
+                <p class="cassette-cover-mix">${HI ? 'ट्रैक लिस्ट' : `${esc(ctx.occasion.title)} · the track list`}</p>
                 ${trackList}
-                ${S ? '' : '<p class="cassette-cover-hint">Liner notes unfold after the last track ↓</p>'}
+                ${S ? '' : `<p class="cassette-cover-hint">${t_('Liner notes unfold after the last track ↓', 'आख़िरी ट्रैक के बाद पूरी जानकारी खुलेगी ↓')}</p>`}
               </div>
             </div>
             <div class="cassette-panel cassette-panel-notes"${S ? '' : ' hidden'}>
@@ -296,13 +332,14 @@
                 <p lang="hi">${esc(ctx.T.ganeshShort)}</p>
                 ${ganesh ? `<span class="cassette-ganesh">${ganesh}</span>` : ''}
               </div>
-              <p class="cassette-notes-title">Liner notes</p>
+              <p class="cassette-notes-title">${t_('Liner notes', 'लाइनर नोट्स')}</p>
               ${credits}
               <div class="inv-sum cassette-sum">${headHTML}</div>
             </div>
             <div class="cassette-panel cassette-panel-details"${S ? '' : ' hidden'}>
               <div class="inv-sum cassette-sum">${restHTML}</div>
-              ${S ? `<p class="cassette-outro">${dancey ? 'Side A ends here. The dancing doesn’t.' : 'Side A ends here. See you there!'}</p>` : '<p class="cassette-outro"><button type="button" class="cassette-again">◀◀ Rewind &amp; play again</button></p>'}
+              ${S ? `<p class="cassette-outro">${dancey ? t_('Side A ends here. The dancing doesn’t.', 'साइड A यहीं ख़त्म होती है, डांस नहीं।') : t_('Side A ends here. See you there!', 'साइड A यहीं ख़त्म होती है। वहीं मिलते हैं!')}</p>`
+                : `<p class="cassette-outro"><button type="button" class="cassette-again">${t_('◀◀ Rewind &amp; play again', '◀◀ रिवाइंड करके फिर से सुनें')}</button></p>`}
             </div>
           </section>
           <p class="cassette-sr" aria-live="polite"></p>
@@ -481,14 +518,15 @@
         cur = i;
         rows.forEach((r, k) => { r.classList.toggle('is-now', k === i); r.classList.toggle('is-done', i >= 0 && k < i); });
         if (i === -1) {
-          lcdTrk.textContent = `TRK --/${pad2(N)}`;
-          lcd(`♫ SIDE A · SANGEET MIX ’${yy}`, `DEDICATED TO ${guest.toUpperCase()} · WITH LOVE, ${P.groom.toUpperCase()} ♥ ${P.bride.toUpperCase()}`);
+          lcdTrk.textContent = `${TRK} --/${pad2(N)}`;
+          if (HI) lcd(`♫ साइड A · संगीत मिक्स ’${yy}`, `${guest} को समर्पित · सप्रेम, ${P.groom} ♥ ${P.bride}`);
+          else lcd(`♫ SIDE A · SANGEET MIX ’${yy}`, `DEDICATED TO ${guest.toUpperCase()} · WITH LOVE, ${P.groom.toUpperCase()} ♥ ${P.bride.toUpperCase()}`);
           return;
         }
         const tr = tracks[i], e = tr.ev;
-        lcdTrk.textContent = `TRK ${pad2(tr.no)}/${pad2(N)}`;
+        lcdTrk.textContent = `${TRK} ${pad2(tr.no)}/${pad2(N)}`;
         lcd(tr.title.toUpperCase(), `${e.dateShort} · ${e.time} · ${e.place}`.toUpperCase());
-        sr.textContent = `Track ${tr.no}: ${tr.title}. ${e.dateLong}, ${e.time}, ${e.placeFull}.`;
+        sr.textContent = `${t_('Track', 'ट्रैक')} ${tr.no}: ${tr.title}. ${e.dateLong}, ${e.time}, ${e.placeFull}.`;
       }
 
       /* ---- tape + meters ---- */
@@ -583,8 +621,8 @@
         rewRate = Math.max(6, t / (RM ? 500 : 1500));
         rows.forEach(r => r.classList.remove('is-now', 'is-done'));
         cur = -2;
-        lcdTrk.textContent = `TRK --/${pad2(N)}`;
-        lcd('◀◀ REWINDING…', 'ONE MORE TIME, FROM THE TOP');
+        lcdTrk.textContent = `${TRK} --/${pad2(N)}`;
+        lcd(t_('◀◀ REWINDING…', '◀◀ रिवाइंड हो रहा है…'), t_('ONE MORE TIME, FROM THE TOP', 'एक बार फिर, शुरू से'));
         ctx.sound.play('whoosh');
         paintState(); loop();
       }
@@ -594,9 +632,9 @@
         audioGate(false); clunk();
         rows.forEach(r => { r.classList.remove('is-now'); r.classList.add('is-done'); });
         cur = N;
-        lcdTrk.textContent = `TRK ${pad2(N)}/${pad2(N)}`;
-        lcd('END OF SIDE A ✓', 'LINER NOTES BELOW ↓ · ◀◀ REWIND TO REPLAY');
-        sr.textContent = 'End of Side A. The liner notes with all the details are below.';
+        lcdTrk.textContent = `${TRK} ${pad2(N)}/${pad2(N)}`;
+        lcd(END_TITLE, END_INFO);
+        sr.textContent = t_('End of Side A. The liner notes with all the details are below.', 'साइड A समाप्त। पूरी जानकारी नीचे है।');
         paintState();
         if (!unfolded) setTimeout(() => unfold(false, true), RM ? 150 : 700);
         if (after) { const f = after; after = null; f(); }
@@ -627,14 +665,15 @@
         if (!RM) { flip.classList.remove('is-eject'); void flip.offsetWidth; flip.classList.add('is-eject'); }
         bnote.classList.toggle('is-open', toB);
         bnote.setAttribute('aria-hidden', String(!toB));
-        keys.eject.setAttribute('aria-label', toB ? 'Eject: flip back to Side A' : 'Eject: flip to Side B');
+        keys.eject.setAttribute('aria-label', toB ? t_('Eject: flip back to Side A', 'इजेक्ट: वापस साइड A पर') : EJECT_A);
         if (toB) {
-          lcd('SIDE B · BONUS TRACK', 'DANCE-FLOOR RULES · 1. NO SITTING · 2. UNCLE JI KA SOLO MANDATORY');
-          sr.textContent = 'Side B: Dance-floor rules. 1, no sitting. 2, Uncle ji ka solo is mandatory. 3, every song is the last song. 4, shoes optional, smiles compulsory.';
+          lcd(t_('SIDE B · BONUS TRACK', 'साइड B · बोनस ट्रैक'), t_('DANCE-FLOOR RULES · 1. NO SITTING · 2. UNCLE JI KA SOLO MANDATORY', 'डांस फ़्लोर के नियम · 1. कोई बैठेगा नहीं · 2. अंकल जी का सोलो ज़रूरी'));
+          sr.textContent = t_('Side B: Dance-floor rules. 1, no sitting. 2, Uncle ji ka solo is mandatory. 3, every song is the last song. 4, shoes optional, smiles compulsory.',
+            'साइड B: डांस फ़्लोर के नियम। 1, कोई बैठेगा नहीं। 2, अंकल जी का सोलो डांस ज़रूरी है। 3, हर गाना आख़िरी गाना है। 4, जूते मर्ज़ी से, मुस्कान ज़रूरी।');
         } else {
           const c = cur; cur = -2;
-          if (mode === 'end') lcd('END OF SIDE A ✓', 'LINER NOTES BELOW ↓ · ◀◀ REWIND TO REPLAY');
-          else if (t === 0) lcd('PRESS ▶ PLAY', `SIDE A · ${N} TRACK${N > 1 ? 'S' : ''} · MADE FOR ${guest.toUpperCase()}`);
+          if (mode === 'end') lcd(END_TITLE, END_INFO);
+          else if (t === 0) lcd(PRESS, READY_INFO);
           else setTrack(c);
           if (cur === -2) cur = c;
         }
@@ -651,8 +690,8 @@
           audioGate(false);
           rows.forEach(r => { r.classList.remove('is-now'); r.classList.add('is-done'); });
           cur = N;
-          lcdTrk.textContent = `TRK ${pad2(N)}/${pad2(N)}`;
-          lcd('END OF SIDE A ✓', 'LINER NOTES BELOW ↓ · ◀◀ REWIND TO REPLAY');
+          lcdTrk.textContent = `${TRK} ${pad2(N)}/${pad2(N)}`;
+          lcd(END_TITLE, END_INFO);
           drawTape(); paintState(); loop();
         }
         unfold(true, false);

@@ -347,3 +347,6 @@ html.v-cassette .cassette-sum .cassette-bless b { display: block; font-style: no
   .cassette-wrap > .cassette-grain, .cassette-bulb, .cassette-key-play, .cassette-track.is-now .cassette-track-no::after { animation: none !important; }
   .cassette-card, .cassette-bnote { transition: none; }
 }
+
+/* Hindi mode: Devanagari marks sit above the letters, so the one-line clipped caption needs more line height. */
+html.lang-hi .cassette-brand-sub { line-height: 1.7; }

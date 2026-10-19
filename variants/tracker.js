@@ -14,7 +14,18 @@
     mehandi: 'Mehandi cones are out for delivery 🌿, geet in progress',
     engagement: 'Rings picked up 💍, DJ is warming up 🎶',
     bhaat: 'Mama ji has arrived with the Bhaat 🎁',
-    haldi: 'Haldi is being applied 💛 (handle with care, may stain)',
+    haldi: 'Haldi is being applied 💛 (handle with care, may stain)',
+  };
+  const STAGE_HI = {
+    ghudchadi: 'दूल्हा घोड़ी पर सवार हो गए 🐎 (सेहराबंदी हो गई)',
+    baraat: 'बारात ने ढोल वाले को साथ ले लिया 🥁, नाचते हुए आ रहे हैं',
+    dinner: 'आपका खाना परोसा जा रहा है 🍽️',
+    vidaai: 'प्यार से डिलीवर, तारों की छाँव में ✨',
+    sunderkand: 'पंडित जी ने पाठ शुरू कर दिया 🙏',
+    mehandi: 'मेहंदी के कोन डिलीवरी के लिए निकल चुके हैं 🌿, गीत चल रहे हैं',
+    engagement: 'अंगूठियाँ आ गईं 💍, डीजे तैयार हो रहा है 🎶',
+    bhaat: 'मामा जी भात लेकर पहुँच गए 🎁',
+    haldi: 'हल्दी लग रही है 💛 (ध्यान से, दाग लग सकता है)',
   };
 
   // Map geometry (viewBox units).
@@ -24,6 +35,7 @@
   Invite.register('tracker', {
     render(root, ctx) {
       const esc = ctx.esc, P = ctx.P, S = ctx.isStatic, RM = ctx.reducedMotion;
+      const t = ctx.t, HI = ctx.hi;   // Hindi version (?lang=hi)
       const AUTO = !S && new URLSearchParams(location.search).get('auto') === '1';
       const evs = ctx.events, N = evs.length;
       const wedding = evs.some(e => WED_IDS.includes(e.id));
@@ -31,11 +43,26 @@
       const orderNo = firstWed.date.split('-').reverse().join('');
       const lastEv = evs[N - 1];
       const baraatIdx = evs.findIndex(e => e.id === 'baraat');
-      const who = ctx.guest || 'Family & Friends';
+      const who = ctx.guest || t('Family & Friends', 'परिवारजन एवं मित्रगण');
 
-      const headline = wedding ? 'Your Dulha is on the way! 🐎' : 'Your invitation is on the way! 💌';
-      const road = (lastEv.venueInfo.area.split(',')[0] || '').trim();
-      const map = wedding ? {
+      const headline = wedding ? t('Your Dulha is on the way! 🐎', 'आपका दूल्हा रास्ते में है! 🐎') : t('Your invitation is on the way! 💌', 'आपका निमंत्रण रास्ते में है! 💌');
+      const vHi = Object.assign({}, lastEv.venueInfo, HI ? lastEv.venueInfo.hi : null);
+      const road = (vHi.area.split(',')[0] || '').trim();
+      const map = HI ? (wedding ? {
+        origin: '🏠 गुड़गांव',
+        city: 'दिल्ली',
+        shield: 'NH-48',
+        road: /रोड/.test(road) ? road : '',
+        dest: vHi.short + ' 📍',
+        aria: `नक्शा: गुड़गांव से ${vHi.short} तक दूल्हे का रास्ता`,
+      } : {
+        origin: '🏠 ' + P.family,
+        city: 'दिल्ली एनसीआर',
+        shield: '',
+        road: '',
+        dest: 'आपके द्वार 📍',
+        aria: 'नक्शा: परिवार के घर से आपके द्वार तक निमंत्रण का सफ़र',
+      }) : wedding ? {
         origin: '🏠 Gurgaon',
         city: 'DELHI',
         shield: 'NH-48',
@@ -50,13 +77,24 @@
         dest: 'Your doorstep 📍',
         aria: 'Map: your invitation travelling from the family home to your doorstep',
       };
-      const partner = {
+      const partner = HI ? {
+        vehicle: wedding ? 'घोड़ी (सफ़ेद)' : 'स्कूटी (सजी हुई)',
+        calls: wedding
+          ? ['दूल्हा तैयार हो रहे हैं 😄', 'सेहरा बँध रहा है, फेरों के बाद कॉल करें 🙏', 'फ़ोन अभी मम्मी जी के पास है 📵']
+          : [P.groom + ' तैयार हो रहे हैं 😄', 'राइडर सेल्फ़ी की लाइन में फँसा है 📸', 'फ़ोन अभी मम्मी जी के पास है 📵'],
+      } : {
         vehicle: wedding ? 'Ghodi (white)' : 'Scooty (decorated)',
         calls: wedding
           ? ['Dulha is busy getting ready 😄', 'Sehra is being tied, call back after the pheras 🙏', 'Phone is with Mummy ji now 📵']
           : [P.groom + ' is busy getting ready 😄', 'Rider is stuck in a selfie queue 📸', 'Phone is with Mummy ji now 📵'],
       };
-      const tickers = {
+      const tickers = HI ? {
+        before: wedding
+          ? ['ढोल वाला 2 किमी दूर है 🥁', 'घोड़ी ने गुड़-चना खा लिया 🐎', 'सेहरा बँध रहा है, कृपया रुकें ✨']
+          : [P.family + ' ने प्यार से पैक किया 💌', 'मिठाई साथ में है 🍬', 'राइडर शादी के गाने गुनगुना रहा है 🎶'],
+        after: ['बारात की स्पीड: 0.5 किमी/घंटा (नागिन डांस चल रहा है) 🐍', 'आगे ट्रैफ़िक: चाचू का डांस सोलो 🕺', 'ढोल वाला रुकने को तैयार नहीं 🥁'],
+        done: wedding ? ['डिलीवर हो गया! ढोल अब भी बज रहा है 🥁'] : ['डिलीवर हो गया! कृपया ख़ुद आकर लें 🙏'],
+      } : {
         before: wedding
           ? ['Dhol wala is 2 km away 🥁', 'Ghodi fuelled up on gur & chana 🐎', 'Sehra being tied, please hold ✨']
           : ['Packed with love by the ' + P.family + ' 💌', 'Mithai on board 🍬', 'Rider is humming shaadi songs 🎶'],
@@ -65,7 +103,9 @@
       };
 
       const timeOf = e => e.isTimeText ? `<i>${esc(e.time)}</i>` : esc(e.time);
-      const stageTitle = e => STAGE[e.id] || `${e.name} is ready for you ✨`;
+      const stageTitle = e => (HI ? STAGE_HI[e.id] || `${e.name} आपके लिए तैयार है ✨` : STAGE[e.id] || `${e.name} is ready for you ✨`);
+      const DELIVERED = t('Order delivered! 🎉', 'ऑर्डर डिलीवर हो गया! 🎉');
+      const BRAND = t('Shaadi<b>Dash</b>', 'शादी<b>डैश</b>');
 
       /* ---------- markup ---------- */
       const svg = `
@@ -120,45 +160,51 @@
         </li>`).join('');
 
       const stars = [1, 2, 3, 4, 5].map(n =>
-        `<button type="button" class="tracker-star" data-n="${n}" aria-label="Rate ${n} star${n > 1 ? 's' : ''}" aria-pressed="false">★</button>`).join('');
+        `<button type="button" class="tracker-star" data-n="${n}" aria-label="${HI ? `${n} स्टार दें` : `Rate ${n} star${n > 1 ? 's' : ''}`}" aria-pressed="false">★</button>`).join('');
 
       const receipt = `
-        <section class="tracker-receipt" ${S ? '' : 'hidden'} aria-label="Order receipt">
+        <section class="tracker-receipt" ${S ? '' : 'hidden'} aria-label="${t('Order receipt', 'ऑर्डर की रसीद')}">
           <div class="tracker-rc">
             <div class="tracker-rc-top">
               <span class="tracker-logo tracker-logo-sm" aria-hidden="true">SD</span>
-              <p class="tracker-rc-brand">Shaadi<b>Dash</b> · Order receipt</p>
-              <p class="tracker-rc-mono">Order #${esc(orderNo)} · ${S ? 'Confirmed' : 'Delivered'} ✓</p>
-              <p class="tracker-rc-mono">Deliver to: ${esc(who)}</p>
+              <p class="tracker-rc-brand">${BRAND} · ${t('Order receipt', 'ऑर्डर की रसीद')}</p>
+              <p class="tracker-rc-mono">${t('Order', 'ऑर्डर')} #${esc(orderNo)} · ${S ? t('Confirmed', 'कन्फ़र्म') : t('Delivered', 'डिलीवर')} ✓</p>
+              <p class="tracker-rc-mono">${t('Deliver to', 'डिलीवरी')}: ${esc(who)}</p>
             </div>
-            <div class="tracker-rc-items">
+            <div class="tracker-rc-items">${HI ? `
+              <p class="tracker-rc-h">सामान</p>
+              <p class="tracker-rc-row"><span>1 × जीवन भर की ख़ुशियाँ</span><i></i><b>अनमोल</b></p>
+              <p class="tracker-rc-row"><span>पैकिंग: प्यार और आशीर्वाद</span><i></i><b>मुफ़्त</b></p>
+              <p class="tracker-rc-row"><span>डिलीवरी चार्ज</span><i></i><b>आपकी उपस्थिति 🙏</b></p>
+              <p class="tracker-rc-row tracker-rc-total"><span>कुल</span><i></i><b>अनमोल</b></p>
+              <p class="tracker-rc-mono tracker-rc-paid">भुगतान: आशीर्वाद से · नीचे ${N} कार्यक्रम</p>` : `
               <p class="tracker-rc-h">Items</p>
               <p class="tracker-rc-row"><span>1 × Lifetime of happiness</span><i></i><b>Priceless</b></p>
               <p class="tracker-rc-row"><span>Packing: love & ashirwad</span><i></i><b>Free</b></p>
               <p class="tracker-rc-row"><span>Delivery fee</span><i></i><b>Your presence 🙏</b></p>
               <p class="tracker-rc-row tracker-rc-total"><span>Total</span><i></i><b>Priceless</b></p>
-              <p class="tracker-rc-mono tracker-rc-paid">Paid via: Ashirwad (blessings) · ${N} event${N > 1 ? 's' : ''} below</p>
+              <p class="tracker-rc-mono tracker-rc-paid">Paid via: Ashirwad (blessings) · ${N} event${N > 1 ? 's' : ''} below</p>`}
             </div>
             ${ctx.summaryHTML()}
-            ${S ? '' : '<div class="tracker-again-wrap"><button type="button" class="tracker-again">↻ Track again</button></div>'}
+            ${S ? '' : `<div class="tracker-again-wrap"><button type="button" class="tracker-again">↻ ${t('Track again', 'फिर से ट्रैक करें')}</button></div>`}
           </div>
         </section>`;
 
       root.innerHTML = `
         <div class="tracker-app${S ? ' tracker-static' : ''}">
           <header class="tracker-bar">
-            <div class="tracker-brand"><span class="tracker-logo" aria-hidden="true">SD</span><span>Shaadi<b>Dash</b></span></div>
-            <span class="tracker-live"><i></i>LIVE</span>
+            <div class="tracker-brand"><span class="tracker-logo" aria-hidden="true">SD</span><span>${BRAND}</span></div>
+            <span class="tracker-live"><i></i>${t('LIVE', 'लाइव')}</span>
           </header>
           <div class="tracker-addr">
             <span class="tracker-addr-ic" aria-hidden="true">📍</span>
-            <div><small>Delivering to</small><strong>${esc(ctx.greeting)}</strong></div>
+            <div><small>${t('Delivering to', 'डिलीवरी इनके लिए')}</small><strong>${esc(ctx.greeting)}</strong></div>
           </div>
           <div class="tracker-map" role="img" aria-label="${esc(map.aria)}">
             <div class="tracker-map-in">${svg}${labels}</div>
           </div>
           <section class="tracker-sheet">
-            <p class="tracker-order">Order #${esc(orderNo)} · ${esc(ctx.occasion.title)}</p>
+            <p class="tracker-order">${t('Order', 'ऑर्डर')} #${esc(orderNo)} · ${esc(ctx.occasion.title)}</p>
             <h1 class="tracker-head">${esc(headline)}</h1>
             <div class="tracker-meta">
               <span class="tracker-eta"></span>
@@ -168,21 +214,21 @@
             <div class="tracker-partner">
               <span class="tracker-av" aria-hidden="true">🤵🏻</span>
               <div class="tracker-pt">
-                <small>Your delivery partner</small>
+                <small>${t('Your delivery partner', 'आपके डिलीवरी पार्टनर')}</small>
                 <strong>${esc(P.groom)} <span>⭐ 5.0</span></strong>
-                <span>Vehicle: ${esc(partner.vehicle)}</span>
+                <span>${t('Vehicle', 'सवारी')}: ${esc(partner.vehicle)}</span>
               </div>
-              ${S ? '' : '<button type="button" class="tracker-call" aria-label="Call partner"><span aria-hidden="true">📞</span><small>Call<span class="tracker-call-x"> partner</span></small></button>'}
+              ${S ? '' : `<button type="button" class="tracker-call" aria-label="${t('Call partner', 'पार्टनर को कॉल करें')}"><span aria-hidden="true">📞</span><small>${t('Call<span class="tracker-call-x"> partner</span>', 'कॉल<span class="tracker-call-x"> करें</span>')}</small></button>`}
             </div>
           </section>
           <section class="tracker-tl-wrap">
-            <h2 class="tracker-h2">Order updates</h2>
+            <h2 class="tracker-h2">${t('Order updates', 'ऑर्डर अपडेट')}</h2>
             <ol class="tracker-tl">
               <li class="tracker-st is-done" data-i="0">
                 <span class="tracker-dot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5l4.2 4.2L18.5 7.5"/></svg></span>
                 <div class="tracker-st-body">
-                  <p class="tracker-st-title"><span class="tracker-st-joke">Order placed by the ${esc(P.family)} 💌</span></p>
-                  <p class="tracker-st-when">${esc(ctx.occasion.title)} · ${esc(P.groom)} & ${esc(P.bride)}</p>
+                  <p class="tracker-st-title"><span class="tracker-st-joke">${HI ? `${esc(P.family)} ने ऑर्डर दिया 💌` : `Order placed by the ${esc(P.family)} 💌`}</span></p>
+                  <p class="tracker-st-when">${esc(ctx.occasion.title)} · ${esc(P.groom)} ${t('&', 'संग')} ${esc(P.bride)}</p>
                 </div>
               </li>
               ${stages}
@@ -191,19 +237,19 @@
           ${S ? '' : `
           <section class="tracker-done" hidden>
             <span class="tracker-done-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.5"/></svg></span>
-            <h2 class="tracker-done-h">Order delivered! 🎉</h2>
-            <p class="tracker-done-p">Delivered to ${esc(who)}, packed with love by the ${esc(P.family)}.</p>
+            <h2 class="tracker-done-h">${DELIVERED}</h2>
+            <p class="tracker-done-p">${HI ? `${esc(who)} को डिलीवर हुआ, ${esc(P.family)} ने प्यार से पैक किया।` : `Delivered to ${esc(who)}, packed with love by the ${esc(P.family)}.`}</p>
             <div class="tracker-rate">
-              <p class="tracker-rate-q">Rate your ${wedding ? 'Baraat' : 'invitation'} experience</p>
-              <div class="tracker-stars" role="group" aria-label="Rating">${stars}</div>
+              <p class="tracker-rate-q">${HI ? `अपने ${wedding ? 'बारात' : 'निमंत्रण'} के अनुभव को रेटिंग दें` : `Rate your ${wedding ? 'Baraat' : 'invitation'} experience`}</p>
+              <div class="tracker-stars" role="group" aria-label="${t('Rating', 'रेटिंग')}">${stars}</div>
               <p class="tracker-thanks" aria-live="polite"></p>
             </div>
           </section>`}
           ${receipt}
           ${S ? '' : `
           <div class="tracker-actions">
-            <button type="button" class="tracker-next"><span class="tracker-next-bar" aria-hidden="true"></span><span class="tracker-next-t">Track next update ›</span></button>
-            <button type="button" class="tracker-skip">Skip to details</button>
+            <button type="button" class="tracker-next"><span class="tracker-next-bar" aria-hidden="true"></span><span class="tracker-next-t">${t('Track next update ›', 'अगला अपडेट देखें ›')}</span></button>
+            <button type="button" class="tracker-skip">${t('Skip to details', 'सीधे विवरण देखें')}</button>
           </div>
           <div class="tracker-toast" role="status" aria-live="polite"></div>
           <p class="tracker-sr" aria-live="polite"></p>`}
@@ -254,10 +300,10 @@
       }
 
       function etaText() {
-        if (delivered || step >= N) return 'Delivered ✓';
-        if (baraatIdx >= 0 && step <= baraatIdx) return 'ETA ' + evs[baraatIdx].time;
+        if (delivered || step >= N) return t('Delivered ✓', 'डिलीवर ✓');
+        if (baraatIdx >= 0 && step <= baraatIdx) return t('ETA ', 'पहुँचेंगे ') + evs[baraatIdx].time;
         const nx = evs[step];
-        return nx.isTimeText ? 'ETA: ' + nx.time : 'ETA ' + nx.time;
+        return HI ? 'पहुँचेंगे ' + nx.time : nx.isTimeText ? 'ETA: ' + nx.time : 'ETA ' + nx.time;
       }
       let tickList = [], tickI = 0, tickTimer = 0;
       function setTickers() {
@@ -276,7 +322,7 @@
         etaEl.textContent = etaText();
         setTickers();
         segEls.forEach((s, i) => s.classList.toggle('is-on', i < step));
-        headEl.textContent = delivered ? 'Order delivered! 🎉' : headline;
+        headEl.textContent = delivered ? DELIVERED : headline;
       }
 
       /* ---------- static: final still ---------- */
@@ -285,7 +331,7 @@
         stEls.forEach(li => li.classList.add('is-done'));
         segEls.forEach(s => s.classList.add('is-on'));
         setProg(1);
-        etaEl.textContent = baraatIdx >= 0 ? 'ETA ' + evs[baraatIdx].time : 'Arriving soon';
+        etaEl.textContent = baraatIdx >= 0 ? t('ETA ', 'पहुँचेंगे ') + evs[baraatIdx].time : t('Arriving soon', 'जल्द पहुँचेंगे');
         tickEl.textContent = tickers.before[0];
         if (wedding) tickEl.textContent += ' · ' + tickers.after[0];
         ctx.ready();
@@ -361,7 +407,7 @@
         setTimeout(() => doneEl.classList.add('is-in'), 30);
         ctx.sound.play('success');
         confetti();
-        sr.textContent = 'Order delivered!';
+        sr.textContent = DELIVERED;
         const to = opts.toReceipt ? rcEl : doneEl;
         setTimeout(() => to.scrollIntoView({ behavior: smooth, block: 'start' }), opts.toReceipt ? 50 : 350);
         if (AUTO) {
@@ -384,7 +430,12 @@
         starEls.forEach((s, i) => { s.classList.toggle('is-on', i < n); s.setAttribute('aria-pressed', String(i < n)); });
         starEls[n - 1].classList.remove('is-pop'); void starEls[n - 1].offsetWidth; starEls[n - 1].classList.add('is-pop');
         ctx.sound.play('success');
-        thanks.textContent = n === 5 ? 'Thank you! Please collect your 5★ in person, on the dance floor 💃'
+        thanks.textContent = HI ? (n === 5 ? 'धन्यवाद! अपने 5★ डांस फ़्लोर पर ख़ुद आकर लें 💃'
+          : n === 4 ? '4★? डांस वाले जूते लाइए, आख़िरी स्टार हम कमा लेंगे 😄'
+            : n === 3 ? '3★? बुरा नहीं! एक ढोल की थाप और 5 हो जाएँगे, वहीं मिलते हैं 🥁'
+              : n === 2 ? 'सिर्फ़ 2★? खाने पर आइए, राय बदल जाएगी 😄'
+                : '1★?! घोड़ी भी नाराज़ है 🐴 एक डांस दीजिए, आपका दिल जीत लेंगे 🙏')
+          : n === 5 ? 'Thank you! Please collect your 5★ in person, on the dance floor 💃'
           : n === 4 ? '4★? Bring your dancing shoes and we’ll earn that last star 😄'
             : n === 3 ? '3★? Not bad! One dhol beat and you’ll be at 5, see you there 🥁'
               : n === 2 ? 'Only 2★? Come for the dinner, you’ll change your mind 😄'

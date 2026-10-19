@@ -16,6 +16,12 @@
                       dateShort ("Thu 3 Dec"), isTimeText (true when time is a phrase, e.g. Vidaai)
      ctx.days         the same events grouped by date: [{ date, dow, dd, mon, dateLong, dateShort, events:[...] }]
      ctx.guest        guest name from ?to= ('' when absent)
+     ctx.hi, ctx.t(en, hi)  Hindi mode (?lang=hi or a /<variant>-hi page): ctx.hi is true and ctx.t returns the
+                      Hindi text. In Hindi mode ctx.events, ctx.days, ctx.P, ctx.greeting and ctx.occasion already
+                      hold Hindi (name, time, place, placeFull, dow, mon, month, dateLong, dateShort, note, dress;
+                      the English originals stay in ev.en, P.en and occasion.en), and summaryHTML and the buttons are
+                      in Hindi. A variant only translates its own wording. hindi-fonts.css adds Devanagari letters
+                      to the English-only web fonts.
      ctx.greeting     'Dear Sharma Ji & Family' or 'Dear Family & Friends'
      ctx.occasion     { key, title, titleHi, line } — what this card is inviting to, worded for the group
      ctx.P, ctx.T     PEOPLE and TEXT from data.js
@@ -53,12 +59,12 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-  function decorate(ev) {
+  function decorate(ev, hi) {
     const [y, m, d] = ev.date.split('-').map(Number);
     const dt = new Date(Date.UTC(y, m - 1, d));
     const v = D.VENUES[ev.venue];
     const dow = DOW[dt.getUTCDay()];
-    return Object.assign({}, ev, {
+    const out = Object.assign({}, ev, {
       venueInfo: v,
       place: ev.spot ? ev.spot + ', ' + v.short : v.name,
       placeFull: ev.spot ? `${ev.spot}, ${v.short}, ${v.area.split(',').pop().trim()}` : `${v.name}, ${v.area}`,
@@ -67,6 +73,21 @@
       dateLong: `${dow}, ${d} ${MON[m - 1]} ${y}`,
       dateShort: `${dow.slice(0, 3)} ${d} ${MON[m - 1].slice(0, 3)}`,
       isTimeText: !ev.start,
+    });
+    if (!hi) return out;
+    // Hindi mode: the same fields in Hindi, English originals kept in out.en (used for the calendar file).
+    const en = {};
+    ['name', 'time', 'place', 'placeFull', 'dow', 'mon', 'month', 'dateLong', 'dateShort', 'note', 'dress'].forEach(k => { en[k] = out[k]; });
+    const vh = v.hi || {};
+    return Object.assign(out, {
+      en,
+      name: ev.hi || ev.name,
+      time: hindi.time(ev),
+      place: ev.spot ? `${ev.spotHi || ev.spot}, ${vh.short || v.short}` : (vh.name || v.name),
+      placeFull: hindi.place(out),
+      dow: DOW_HI[dt.getUTCDay()], mon: MON_HI[m - 1], month: MON_HI[m - 1],
+      dateLong: hindi.date(ev.date), dateShort: hindi.date(ev.date, true),
+      note: ev.noteHi || ev.note, dress: ev.dressHi || ev.dress,
     });
   }
 
@@ -88,22 +109,27 @@
     if (has(6) || has(7) || has(8) || has(9)) return {
       key: 'wedding', title: 'Shubh Vivah', titleHi: 'शुभ विवाह',
       line: 'request the pleasure of your company at the wedding celebrations of their son',
+      lineHi: 'अपने सुपुत्र के शुभ विवाह के पावन अवसर पर आपको सादर आमंत्रित करते हैं',
     };
     if (has(3)) return {
       key: 'engagement', title: 'Sagai & Sangeet', titleHi: 'सगाई एवं संगीत',
       line: 'invite you to an evening of rings, music and dancing at the engagement of their son',
+      lineHi: 'अपने सुपुत्र की सगाई एवं संगीत संध्या में आपको सादर आमंत्रित करते हैं',
     };
     if (has(4) || has(5)) return {
       key: 'haldi', title: 'Haldi & Bhaat', titleHi: 'हल्दी एवं भात',
       line: 'invite you to a morning of turmeric, blessings and family love as they get their son ready for his wedding',
+      lineHi: 'अपने सुपुत्र के विवाह से पूर्व हल्दी एवं भात की रस्मों में आपको सादर आमंत्रित करते हैं',
     };
     if (has(2)) return {
       key: 'mehandi', title: 'Mehandi', titleHi: 'मेहंदी',
       line: 'invite you to an afternoon of mehandi, geet and dinner ahead of the wedding of their son',
+      lineHi: 'अपने सुपुत्र के विवाह से पूर्व मेहंदी एवं गीत में आपको सादर आमंत्रित करते हैं',
     };
     return {
       key: 'sunderkand', title: 'Shri Sunderkand Path', titleHi: 'श्री सुंदरकांड पाठ',
       line: 'invite you to seek Hanuman ji’s blessings at the Sunderkand Path ahead of the wedding of their son',
+      lineHi: 'अपने सुपुत्र के विवाह से पूर्व हनुमान जी का आशीर्वाद लेने हेतु श्री सुंदरकांड पाठ में आपको सादर आमंत्रित करते हैं',
     };
   }
 
@@ -307,19 +333,56 @@
 
   /* ---------- markup helpers ---------- */
   function directionsHTML(ev, label) {
-    return `<a class="inv-btn inv-dir" href="${esc(ev.venueInfo.map)}" target="_blank" rel="noopener">${esc(label || 'Directions')}</a>`;
+    return `<a class="inv-btn inv-dir" href="${esc(ev.venueInfo.map)}" target="_blank" rel="noopener">${esc(label || (Invite.lang === 'hi' ? 'रास्ता देखें' : 'Directions'))}</a>`;
   }
   function calendarButtonHTML(label) {
-    return `<button type="button" class="inv-btn inv-cal" data-inv-cal>${esc(label || 'Add to calendar')}</button>`;
+    return `<button type="button" class="inv-btn inv-cal" data-inv-cal>${esc(label || (Invite.lang === 'hi' ? 'कैलेंडर में जोड़ें' : 'Add to calendar'))}</button>`;
   }
   function timeHTML(e) {
     return e.isTimeText ? `<i>${esc(e.time)}</i>` : esc(e.time);
+  }
+
+  // Hindi details block: same markup and classes as the English one, Hindi word order.
+  function summaryHi(ctx, opts) {
+    const P = ctx.P;
+    const head = opts.heading === false ? '' : `
+      <header class="inv-sum-head">
+        <p class="inv-sum-kicker">${esc(ctx.occasion.title)}</p>
+        <p class="inv-sum-bless"><span class="inv-name">${esc(P.blessings)}</span><br>के आशीर्वाद से</p>
+        <p class="inv-sum-hosts"><span class="inv-name">${esc(P.groomParents)}</span></p>
+        <p class="inv-sum-line">${esc(ctx.occasion.line)}</p>
+        <h2 class="inv-sum-couple"><span>${esc(P.groom)}</span><em>संग</em><span>${esc(P.bride)}</span></h2>
+        <p class="inv-sum-bride">सुपुत्री <span class="inv-name">${esc(P.brideParents)}</span></p>
+      </header>`;
+    const days = ctx.days.map(d => `
+      <section class="inv-sum-day">
+        <h3>${esc(d.dateLong)}</h3>
+        ${d.events.map(e => `
+          <div class="inv-sum-ev">
+            <div class="inv-sum-time">${timeHTML(e)}</div>
+            <div class="inv-sum-what">
+              <strong>${esc(e.name)}</strong>${e.note ? ` <span class="inv-sum-note">${esc(e.note)}</span>` : ''}
+              <span class="inv-sum-place">${esc(e.placeFull)}</span>
+              ${e.dress ? `<span class="inv-sum-note">वेशभूषा: ${esc(e.dress)}</span>` : ''}
+            </div>
+            ${ctx.isStatic ? '' : directionsHTML(e)}
+          </div>`).join('')}
+      </section>`).join('');
+    const foot = opts.footer === false ? '' : `
+      <footer class="inv-sum-foot">
+        <p class="inv-sum-love">सप्रेम,<br><span class="inv-name">${esc(P.hosts)}</span></p>
+        <p class="inv-sum-addr">${esc(P.address)}</p>
+        <p class="inv-sum-phones">${P.phones.map(p => `<a class="inv-sum-phone" href="tel:+91${esc(p)}"><span aria-hidden="true">📞</span> ${esc(p.replace(/^(\d{5})(\d{5})$/, '$1 $2'))}</a>`).join('')}</p>
+      </footer>`;
+    const cal = ctx.isStatic ? '' : `<div class="inv-sum-actions">${calendarButtonHTML()}</div>`;
+    return `<div class="inv-sum inv-sum-hi" lang="hi">${head}${days}${cal}${foot}</div>`;
   }
 
   function makeSummary(ctx) {
     return function summaryHTML(opts) {
       opts = opts || {};
       const P = ctx.P;
+      if (ctx.hi) return summaryHi(ctx, opts);
       const head = opts.heading === false ? '' : `
         <header class="inv-sum-head">
           <p class="inv-sum-kicker">${esc(ctx.occasion.title)}</p>
@@ -358,7 +421,7 @@
   const registry = {};
   const Invite = {
     data: D, esc, decorate, groupByDay, occasionFor, buildIcs, sound, art, ganeshBlockHTML, hindi,
-    isStatic: false,
+    isStatic: false, lang: 'en',
 
     register(id, impl) { registry[id] = impl; },
 
@@ -371,19 +434,27 @@
       const q = new URLSearchParams(loc.search);
       // Hosted links are /<variant>?i=… (one page per variant, so WhatsApp shows that card's preview).
       // An unknown page name such as "invite" falls back to the group's own variant in start().
+      // A "-hi" page (/metro-hi) or ?lang=hi opens the Hindi version of the card.
       const page = loc.pathname.split('/').pop().replace(/\.html$/, '');
-      return { code: q.get('i') || '', guest: (q.get('to') || '').trim().slice(0, 80), variant: q.get('t') || page, img: q.get('img') === '1' };
+      const lang = q.get('lang') || (/-hi$/.test(page) ? 'hi' : 'en');
+      return { code: q.get('i') || '', guest: (q.get('to') || '').trim().slice(0, 80), variant: q.get('t') || page.replace(/-hi$/, ''),
+        img: q.get('img') === '1', lang: lang === 'hi' ? 'hi' : 'en' };
     },
 
     buildCtx(opts) {
       const group = Invite.groupFor(opts.code);
-      const events = group.events.map(n => decorate(D.EVENTS.find(e => e.n === n)));
+      const hi = opts.lang === 'hi';
+      Invite.lang = hi ? 'hi' : 'en';
+      const events = group.events.map(n => decorate(D.EVENTS.find(e => e.n === n), hi));
+      const occ = occasionFor(group.events);
       const ctx = {
         group, events, days: groupByDay(events),
         guest: opts.guest || '',
-        greeting: opts.guest ? 'Dear ' + opts.guest : 'Dear Family & Friends',
-        occasion: occasionFor(group.events),
-        P: D.PEOPLE, T: D.TEXT,
+        hi, lang: Invite.lang, t: (en, h) => (hi ? h : en),
+        greeting: hi ? (opts.guest ? 'आदरणीय ' + opts.guest : 'आदरणीय परिवारजन एवं मित्रगण')
+          : opts.guest ? 'Dear ' + opts.guest : 'Dear Family & Friends',
+        occasion: hi ? Object.assign({}, occ, { title: occ.titleHi, line: occ.lineHi, en: occ }) : occ,
+        P: hi ? Object.assign({}, D.PEOPLE, D.PEOPLE.hi, { en: D.PEOPLE }) : D.PEOPLE, T: D.TEXT,
         isStatic: !!opts.img,
         reducedMotion: !!(root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches),
         sound, esc, directionsHTML, calendarButtonHTML,
@@ -403,22 +474,32 @@
 
     /* Loads variants/<id>.css + .js and renders into `mount`. Used by invite.html. */
     start(mount, opts) {
+      const known = D.VARIANTS.some(v => v.id === opts.variant);
+      const id = known ? opts.variant : Invite.groupFor(opts.code).variant;
+      if (id === 'patrika') opts = Object.assign({}, opts, { lang: 'hi' });   // the plain Hindi card is always Hindi
       const ctx = Invite.buildCtx(opts);
       Invite.isStatic = ctx.isStatic;
-      const known = D.VARIANTS.some(v => v.id === opts.variant);
-      const id = known ? opts.variant : ctx.group.variant;
       document.documentElement.classList.add('v-' + id);
+      if (ctx.hi) {
+        document.documentElement.lang = 'hi';
+        document.documentElement.classList.add('lang-hi');
+        const f = document.createElement('link');
+        f.rel = 'stylesheet'; f.href = 'hindi-fonts.css';
+        document.head.appendChild(f);
+      }
       if (ctx.isStatic) {
         document.documentElement.classList.add('img');
         // The image renderer reads this (via --dump-dom) to size the screenshot to the content.
         setInterval(() => document.documentElement.setAttribute('data-height',
           Math.ceil(Math.max(document.documentElement.scrollHeight, document.body.scrollHeight))), 250);
       }
-      if (ctx.guest) document.title = `${D.PEOPLE.groom} & ${D.PEOPLE.bride} · for ${ctx.guest}`;
+      if (ctx.hi) document.title = `${ctx.P.groom} संग ${ctx.P.bride}` + (ctx.guest ? ` · ${ctx.guest} के लिए` : '');
+      else if (ctx.guest) document.title = `${D.PEOPLE.groom} & ${D.PEOPLE.bride} · for ${ctx.guest}`;
 
       // One delegated handler for every "Add to calendar" button any variant renders.
       mount.addEventListener('click', e => {
-        if (e.target.closest('[data-inv-cal]')) { sound.play('ding'); Invite.downloadIcs(ctx.events); }
+        // The calendar file keeps the English names and places so map apps can find them.
+        if (e.target.closest('[data-inv-cal]')) { sound.play('ding'); Invite.downloadIcs(ctx.events.map(ev => Object.assign({}, ev, ev.en))); }
       });
       if (!ctx.isStatic) Invite.mountSoundToggle();
 

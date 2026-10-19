@@ -227,7 +227,7 @@
       ln('M69.4 148.6 C68.6 149.4 68.6 150.2 69.2 150.8 M68.4 151 C67.8 151.8 68 152.6 68.8 153.2 M71.6 148.2 C70.8 149 70.8 149.8 71.4 150.4', .45, .8) +
       ln('M74 151.4 C78 150.4 82.4 150.6 86 151.8', .45, .4);
 
-    return `<svg class="diya-hmn-svg" viewBox="0 0 200 186" role="img" aria-label="Shri Hanuman ji in meditation under a peepal tree" focusable="false" stroke-linecap="round" stroke-linejoin="round">
+    return `<svg class="diya-hmn-svg" viewBox="0 0 200 186" role="img" aria-label="${Invite.lang === 'hi' ? 'पीपल के नीचे ध्यानमग्न श्री हनुमान जी' : 'Shri Hanuman ji in meditation under a peepal tree'}" focusable="false" stroke-linecap="round" stroke-linejoin="round">
     <defs>
       <radialGradient id="diyaHmGlow" cx=".5" cy=".42" r=".5"><stop offset="0" stop-color="#ffd27a" stop-opacity=".42"/><stop offset=".55" stop-color="#f59a32" stop-opacity=".12"/><stop offset="1" stop-color="#f59a32" stop-opacity="0"/></radialGradient>
       <radialGradient id="diyaHmHalo"><stop offset="0" stop-color="${C.h}" stop-opacity=".6"/><stop offset=".7" stop-color="${C.l1}" stop-opacity=".22"/><stop offset="1" stop-color="${C.l1}" stop-opacity=".06"/></radialGradient>
@@ -366,6 +366,7 @@
   Invite.register('diya', {
     render(root, ctx) {
       const esc = ctx.esc, P = ctx.P, T = ctx.T;
+      const tr = ctx.t, HI = ctx.hi;   // Hindi version (?lang=hi)
       const isSK = ctx.events.some(e => e.id === 'sunderkand');
       const rm = ctx.reducedMotion;
       const auto = !ctx.isStatic && /[?&]auto=1(&|$)/.test(location.search);
@@ -387,18 +388,18 @@
           <div class="diya-light" aria-hidden="true"><div class="diya-wave"></div></div>
           <div class="diya-petals" aria-hidden="true"></div>
           <section class="diya-hero">
-            <button class="diya-bell" type="button" aria-label="Ring the temple bell">${bellSVG()}</button>
+            <button class="diya-bell" type="button" aria-label="${tr('Ring the temple bell', 'मंदिर की घंटी बजाएँ')}">${bellSVG()}</button>
             <p class="diya-kicker" lang="hi">सादर आमंत्रण</p>
             <h1 class="diya-greet">${esc(ctx.greeting)}</h1>
-            <button class="diya-lamp" type="button" aria-label="Light the diya">
+            <button class="diya-lamp" type="button" aria-label="${tr('Light the diya', 'दीया जलाएँ')}">
               <span class="diya-glow" aria-hidden="true"></span>
               ${lampSVG()}
               <span class="diya-embers" aria-hidden="true">${embers}</span>
             </button>
-            <p class="diya-hint">Tap to light the diya 🪔</p>
-            <button class="diya-skip" type="button">Skip to details</button>
+            <p class="diya-hint">${tr('Tap to light the diya 🪔', 'दीया जलाने के लिए टैप करें 🪔')}</p>
+            <button class="diya-skip" type="button">${tr('Skip to details', 'सीधे विवरण देखें')}</button>
           </section>
-          <section class="diya-card" aria-label="Invitation">
+          <section class="diya-card" aria-label="${tr('Invitation', 'निमंत्रण')}">
             <div class="diya-sheet">
               ${cornerSVG('tl')}${cornerSVG('tr')}${cornerSVG('bl')}${cornerSVG('br')}
               <p class="diya-ganesh ${rv()}" lang="hi">${esc(T.ganeshShort)}</p>
@@ -409,13 +410,13 @@
                 ${isSK ? '<cite>श्री रामचरितमानस · सुंदरकांड</cite>' : ''}
               </blockquote>
               <div class="diya-div ${rv()}">${dividerSVG()}</div>
-              <h2 class="diya-title ${rv()}">${esc(ctx.occasion.title)}<span lang="hi">${esc(ctx.occasion.titleHi)}</span></h2>
-              ${P.blessings ? `<p class="diya-bless ${rv()}">With the blessings of ${esc(P.blessings)}</p>` : ''}
+              <h2 class="diya-title ${rv()}">${esc(ctx.occasion.title)}${HI ? '' : `<span lang="hi">${esc(ctx.occasion.titleHi)}</span>`}</h2>
+              ${P.blessings ? `<p class="diya-bless ${rv()}">${HI ? `${esc(P.blessings)} के आशीर्वाद से` : `With the blessings of ${esc(P.blessings)}`}</p>` : ''}
               <p class="diya-hosts ${rv()}">${esc(P.groomParents)}</p>
               <p class="diya-line ${rv()}">${esc(ctx.occasion.line)}</p>
-              <p class="diya-couple ${rv()}"><span>${esc(P.groom)}</span><em>with</em><span>${esc(P.bride)}</span></p>
-              <p class="diya-bride ${rv()}">Daughter of ${esc(P.brideParents)}</p>
-              <div class="diya-div diya-mark ${rv()}" id="diya-details">${dividerSVG()}<p class="diya-dkick">When &amp; where</p></div>
+              <p class="diya-couple ${rv()}"><span>${esc(P.groom)}</span><em>${tr('with', 'संग')}</em><span>${esc(P.bride)}</span></p>
+              <p class="diya-bride ${rv()}">${tr('Daughter of', 'सुपुत्री')} ${esc(P.brideParents)}</p>
+              <div class="diya-div diya-mark ${rv()}" id="diya-details">${dividerSVG()}<p class="diya-dkick">${tr('When &amp; where', 'कब और कहाँ')}</p></div>
               <div class="diya-sum ${rv()}">${ctx.summaryHTML({ heading: false })}</div>
             </div>
             <p class="diya-close ${rv()}" lang="hi">${isSK ? '॥ जय श्री राम ॥' : '॥ शुभमस्तु ॥'}</p>
@@ -484,7 +485,7 @@
         if (state >= 2) return;
         state = 2;
         el.classList.add('is-lit');
-        lamp.setAttribute('aria-label', 'The diya is lit');
+        lamp.setAttribute('aria-label', tr('The diya is lit', 'दीया जल गया'));
         ring();
       }
 
@@ -505,7 +506,7 @@
         if (state < 3) {
           state = 2;
           el.classList.add('is-instant', 'is-lit');
-          lamp.setAttribute('aria-label', 'The diya is lit');
+          lamp.setAttribute('aria-label', tr('The diya is lit', 'दीया जल गया'));
           reveal();
           finish();
         }
