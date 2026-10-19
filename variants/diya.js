@@ -99,14 +99,93 @@
     </g>`;
   }
 
-  // Hanuman ji's doodle (from core's shared art) inside a gold halo, flanked by fading rules and dots.
+  // Hanuman ji seated in dhyana under a peepal tree (after the devotional painting): gold line art, stroke =
+  // currentColor. Heart-shaped peepal leaves hang in a dome (seeded, so every render is the same), a dotted
+  // prabhamandal behind the mukut, hands folded in the lap, tail rising at his right, gada resting at his left.
+  function hanumanSVG() {
+    const LEAF = 'M0 1.2 C-1.5 -.6 -5 -.4 -5.4 3 C-5.8 6.4 -2 9 0 13.5 C2 9 5.8 6.4 5.4 3 C5 -.4 1.5 -.6 0 1.2Z';
+    let seed = 11;
+    const rnd = (a, b) => { seed = (seed * 9301 + 49297) % 233280; return a + (b - a) * seed / 233280; };
+    const leaves = [];
+    [[44, 10], [55, 13], [66, 15], [77, 18], [88, 20]].forEach(([r, n]) => {
+      for (let i = 0; i < n; i++) {
+        const a = Math.PI * (1.08 + .84 * (i + rnd(.15, .85)) / n);
+        const x = 100 + Math.cos(a) * r * 1.05, y = 98 + Math.sin(a) * r * .9;
+        if (Math.hypot(x - 100, (y - 70) * 1.15) < 33 || (y > 60 && Math.abs(x - 100) < 44) || y < 5) continue;
+        const rot = (x - 100) * .35 + rnd(-18, 18), s = rnd(.62, .9);
+        const fill = rnd(0, 1) < .35;
+        leaves.push(`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${rot.toFixed(0)}) scale(${s.toFixed(2)})">` +
+          `<path d="${LEAF}"${fill ? ' fill="currentColor" fill-opacity=".22"' : ''}/><path d="M0 1.5 V10.5" stroke-width=".6" opacity=".7"/></g>`);
+      }
+    });
+    const ground = [[34, 171, 80], [52, 174, -60], [150, 172, 100], [166, 170, -30], [124, 175, 70], [72, 176, -100]]
+      .map(([x, y, r]) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(.7)"><path d="${LEAF}"/></g>`).join('');
+    return `<svg class="diya-hmn-svg" viewBox="0 0 200 182" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Shri Hanuman" focusable="false">
+    <defs><radialGradient id="diyaHmnGlow" cx=".5" cy=".46" r=".5"><stop offset="0" stop-color="#ffd27a" stop-opacity=".38"/><stop offset=".55" stop-color="#f59a32" stop-opacity=".12"/><stop offset="1" stop-color="#f59a32" stop-opacity="0"/></radialGradient></defs>
+    <ellipse cx="100" cy="92" rx="96" ry="86" fill="url(#diyaHmnGlow)" stroke="none"/>
+    <g class="diya-hmn-tree" stroke-width="1.1">
+      <path d="M93.6 52 C93 44 91 38 87 33 M106.4 52 C107 44 109 38 113 33"/>
+      <path d="M87 33 C79 26 67 24 56 27 C48 29 42 34 37 40 M113 33 C121 26 133 24 144 27 C152 29 158 34 163 40"/>
+      <path d="M88 33 C84 25 78 20 70 17 M112 33 C116 25 122 20 130 17"/>
+      <path d="M62 26 C57 32 54 38 53 46 M138 26 C143 32 146 38 147 46"/>
+      <path d="M98.4 38 C99 31 99.6 25 100 19"/>
+    </g>
+    <g class="diya-hmn-leaves" stroke-width=".9">${leaves.join('')}</g>
+    <circle cx="100" cy="74" r="21" stroke-width=".9" stroke-dasharray="0 3.4" opacity=".8"/>
+    <g class="diya-hmn-figure">
+      <path d="M100 44.5 L103.4 52 L101.6 52 L104.6 58.6 L102.6 58.6 L109.6 66.4 H90.4 L97.4 58.6 L95.4 58.6 L98.4 52 L96.6 52 Z" fill="currentColor" fill-opacity=".18"/>
+      <circle cx="100" cy="42.6" r="1.4" fill="currentColor" stroke="none"/>
+      <path d="M89.6 66.4 H110.4" stroke-width="1.6"/>
+      <circle cx="100" cy="62.4" r="1.2" fill="currentColor" stroke="none"/>
+      <path d="M90.4 67.6 C88.4 72 88.6 78 90.4 82 C92.4 87 96 90.6 100 90.6 C104 90.6 107.6 87 109.6 82 C111.4 78 111.6 72 109.6 67.6"/>
+      <path d="M89 72.4 C86.2 71.4 85.2 75.6 88.6 77.4 M111 72.4 C113.8 71.4 114.8 75.6 111.4 77.4"/>
+      <circle cx="87.6" cy="81" r="1.8"/><circle cx="112.4" cy="81" r="1.8"/>
+      <path d="M93 74.2 C94.4 75.6 96.2 75.6 97.4 74.2 M102.6 74.2 C103.8 75.6 105.6 75.6 107 74.2"/>
+      <path d="M92.6 71.4 C94.2 70.4 96.2 70.4 97.6 71.2 M102.4 71.2 C103.8 70.4 105.8 70.4 107.4 71.4" stroke-width=".9"/>
+      <path d="M98.6 68 C98.6 71 101.4 71 101.4 68"/><path d="M100 68.6 V71.2" stroke-width="1"/>
+      <path d="M98.6 77.6 C99.4 78.4 100.6 78.4 101.4 77.6" stroke-width="1"/>
+      <path d="M95.6 81.2 C98 82.4 102 82.4 104.4 81.2" stroke-width="1.1"/>
+      <path d="M97.6 85.4 C99.2 86.2 100.8 86.2 102.4 85.4" stroke-width="1"/>
+      <path d="M89.6 70 C86 76 85 86 84 94 M110.4 70 C114 76 115 86 116 94" stroke-width="1" opacity=".75"/>
+      <path d="M95.6 90 V94.6 M104.4 90 V94.6"/>
+      <path d="M95.6 94 C88 95 80 96.4 76 101 C71.6 106 69.6 116 70 124 C70.6 131 80 136.4 91 138"/>
+      <path d="M104.4 94 C112 95 120 96.4 124 101 C128.4 106 130.4 116 130 124 C129.4 131 120 136.4 109 138"/>
+      <path d="M77 101.6 C80.4 103 82.4 105.6 83 109 M123 101.6 C119.6 103 117.6 105.6 117 109" opacity=".7" stroke-width="1"/>
+      <path d="M82 108 C80.6 114 79.6 120 80.6 126 C83.6 129.6 87.6 131 91.4 131.4"/>
+      <path d="M118 108 C119.4 114 120.4 120 119.4 126 C116.4 129.6 112.4 131 108.6 131.4"/>
+      <path d="M70.4 112.6 C73.6 114.6 77.6 114.6 81 112.6 M129.6 112.6 C126.4 114.6 122.4 114.6 119 112.6" stroke-width="1.6"/>
+      <path d="M89 97 C92 105 108 105 111 97"/>
+      <circle cx="100" cy="106.4" r="1.9" fill="currentColor" fill-opacity=".3"/>
+      <path d="M85 99 C86 116 114 116 115 99" stroke-dasharray="0 2.6" stroke-width="1.4"/>
+      <path d="M86 110 C91 113.6 96 113.6 100 111 C104 113.6 109 113.6 114 110" opacity=".8"/>
+      <path d="M100 115 V126" opacity=".55" stroke-width="1"/>
+      <circle cx="100" cy="128.6" r=".8" fill="currentColor" stroke="none"/>
+      <path d="M88 131.6 C86.6 134 86.6 136 88 138 M112 131.6 C113.4 134 113.4 136 112 138" stroke-width="1.6"/>
+      <path d="M90.6 134.6 C94 131.6 106 131.6 109.4 134.6 C108.4 140 91.6 140 90.6 134.6Z" fill="currentColor" fill-opacity=".12"/>
+      <path d="M98 133 C99 131.6 101 131.6 102 133" />
+      <path d="M86 137 C74 140 63 147 58 154 C55 160 60 164.6 70 164.4 H130 C140 164.6 145 160 142 154 C137 147 126 140 114 137"/>
+      <path d="M63 158.4 C80 152 100 148 121 147"/>
+      <path d="M137 158.4 C122 154 108 152.4 92 152"/>
+      <path d="M121 147 C126 143.6 132.6 145 133.6 149.4 C130 151 125 150.6 121 147Z"/>
+      <path d="M92 152 C86 150 80 151.6 79 155.6 C83 157 88.6 156 92 152Z"/>
+      <path d="M100 140 C98 146 98.6 152 100 158 M95 141 C92 147 92 152 93 157 M105 141 C108 147 108 152 107 157" opacity=".5" stroke-width="1"/>
+    </g>
+    <g class="diya-hmn-gada">
+      <path d="M150.6 166.4 L156 134" stroke-width="2.6"/>
+      <path d="M154.4 138 L159.8 139" stroke-width="1.3"/>
+      <circle cx="157.6" cy="126.4" r="7.6" fill="currentColor" fill-opacity=".14"/>
+      <path d="M150.6 124.4 C155 126.8 160 127.6 164.4 127" opacity=".6" stroke-width="1"/>
+      <path d="M151 129.4 C155 131.6 159.6 132 163.8 131" opacity=".6" stroke-width="1"/>
+      <path d="M159 119 L159.8 115.6"/><circle cx="160" cy="114" r="1.3" fill="currentColor" stroke="none"/>
+    </g>
+    <path class="diya-hmn-tail" d="M62 156 C50 152 44 140 48 128 C51 119 50 110 44 106 C40 103.6 36 106 37.6 110" stroke-width="1.8"/>
+    <path d="M22 168.6 C60 166.4 140 166.4 178 168.6" stroke-width="1"/>
+    <g stroke-width=".8" opacity=".75">${ground}</g>
+  </svg>`;
+  }
+
   function hanumanMotif() {
-    const art = (Invite.art && Invite.art.hanuman) ? Invite.art.hanuman({ size: 104, className: 'diya-hmn-art' }) : '';
-    return `<div class="diya-hmn" role="img" aria-label="Hanuman ji">
-      <span class="diya-hmn-line diya-hmn-l" aria-hidden="true"></span><i class="diya-hmn-dot" aria-hidden="true"></i>
-      <span class="diya-hmn-halo">${art}</span>
-      <i class="diya-hmn-dot" aria-hidden="true"></i><span class="diya-hmn-line diya-hmn-r" aria-hidden="true"></span>
-    </div>`;
+    return `<div class="diya-hmn">${hanumanSVG()}</div>`;
   }
 
   function motifSVG(isSK) {
