@@ -259,8 +259,8 @@
       if (rideStarted) return; rideStarted = true;
       clearAll();
       show('ride');
-      annHi.textContent = 'शादी एक्सप्रेस में आपका स्वागत है।';
-      annEn.textContent = t('Welcome aboard the Shaadi Express.', '');
+      annHi.textContent = 'शादी एक्सप्रेस में आपका स्वागत है। कृपया दरवाज़ों से हटकर खड़े हों। आपके लिए एक सीट आरक्षित है।';
+      annEn.textContent = t('Welcome aboard the Shaadi Express. Please stand clear of the doors. A seat is reserved for you.', '');
       annDoors.textContent = '';
       announce(200);
       signwrap.innerHTML = welcomeHTML();
