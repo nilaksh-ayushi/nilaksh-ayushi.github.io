@@ -23,7 +23,7 @@
   'use strict';
 
   const CSS = `
-  .ideck { position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center;
+  .ideck { position: fixed; inset: 0; z-index: 1200; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center;
     padding: calc(12px + env(safe-area-inset-top, 0px)) 0 calc(12px + env(safe-area-inset-bottom, 0px)); }
   .ideck-backdrop { position: absolute; inset: 0; background: var(--ideck-backdrop, rgba(10,8,14,.74));
     backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: ideckFade .3s ease both; }
