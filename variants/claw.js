@@ -593,6 +593,101 @@
         await wait(380);
         G.el.classList.remove('claw-spin'); B.el.classList.remove('claw-spin');
       }
+      /* ---- machine sounds: real claw-machine noises on the shared audio graph, timed to the motion ---- */
+      let ac = null, kit = null, mbus = null;
+      function audio() {
+        if (S || ctx.sound.muted) return null;
+        if (!ac) {
+          const g = ctx.sound.graph && ctx.sound.graph();
+          if (!g) return null;
+          ac = g.ac; kit = g.kit;
+          mbus = ac.createGain(); mbus.connect(g.input);
+        }
+        return ac.state === 'running' ? ac : null;
+      }
+      const M = o => Object.assign({ dest: mbus }, o);
+      const dur = ms => (RM ? Math.min(ms, 160) : ms) / 1000;   // matches tween()
+      function relay(t0) { kit.noise(t0, M({ d: 0.012, v: 0.08, hp: 2500 })); kit.osc(t0, M({ f: 600, v: 0.02, d: 0.02 })); }
+      const SFX = {
+        // gantry motor: a buzzy hum (with a faint gear whine) for as long as the claw slides; a relay clicks at each end
+        slide(ms) {
+          const d = dur(ms), h = Math.max(0.02, d - 0.1);
+          relay(0);
+          kit.osc(0, M({ f: 95, f2: 110, type: 'sawtooth', v: 0.06, a: 0.04, hold: h, d: d + 0.05, lp: 500, vib: [30, 4] }));
+          kit.osc(0, M({ f: 620, f2: 700, type: 'triangle', v: 0.014, a: 0.06, hold: h, d: d + 0.05 }));
+          kit.noise(0, M({ a: 0.04, hold: h, d: d + 0.05, v: 0.025, bp: 900, q: 1.5 }));
+          relay(d);
+        },
+        // winch paying out / reeling in the cable: the whine falls going down and rises coming up, with a ratchet
+        winch(ms, up) {
+          const d = dur(ms), h = Math.max(0.02, d - 0.1);
+          relay(0);
+          kit.osc(0, M({ f: up ? 140 : 210, f2: up ? 230 : 120, glide: d, type: 'sawtooth', v: 0.05, a: 0.04, hold: h, d: d + 0.05, lp: 700, vib: [40, 5] }));
+          kit.osc(0, M({ f: up ? 900 : 1300, f2: up ? 1400 : 800, glide: d, v: 0.012, a: 0.05, hold: h, d: d + 0.05 }));
+          for (let x = 0.04; x < d - 0.03; x += 0.06) kit.noise(x, M({ d: 0.012, v: 0.035, bp: 2500, q: 3 }));
+          relay(d);
+        },
+        // the solenoid fires: a metal clack and the prongs rattling shut
+        close() {
+          kit.osc(0, M({ f: 180, f2: 90, v: 0.3, d: 0.08 }));
+          kit.noise(0, M({ d: 0.05, v: 0.3, bp: 1800, q: 2 }));
+          [0.03, 0.06, 0.1].forEach((x, i) => kit.osc(x, M({ f: 2400 + i * 700, v: 0.03, a: 0.001, d: 0.12, rev: 0.1 })));
+        },
+        // the solenoid lets go
+        open() {
+          kit.noise(0, M({ d: 0.04, v: 0.22, bp: 1400, q: 2 }));
+          kit.osc(0, M({ f: 140, f2: 200, v: 0.15, d: 0.06 }));
+          kit.osc(0.02, M({ f: 1800, v: 0.02, a: 0.001, d: 0.15 }));
+        },
+        thud() { kit.osc(0, M({ f: 110, f2: 55, v: 0.4, d: 0.18 })); kit.noise(0, M({ d: 0.06, v: 0.15, lp: 600 })); },
+        // a coin clinks into the slot, rattles down, and the machine beeps the credit in
+        coin() {
+          kit.fm(0, 2637, M({ ratio: 2.8, index: 0.6, v: 0.07, d: 0.35, rev: 0.15 }));
+          kit.fm(0.07, 3136, M({ ratio: 2.8, index: 0.6, v: 0.05, d: 0.3, rev: 0.15 }));
+          [0.13, 0.17, 0.2].forEach(x => kit.noise(x, M({ d: 0.02, v: 0.1, bp: 3200, q: 2 })));
+          kit.osc(0.24, M({ f: 110, f2: 70, v: 0.15, d: 0.08 }));
+          [0, 1].forEach(i => kit.osc(0.36 + i * 0.11, M({ f: 1568, type: 'square', v: 0.035, hold: 0.06, d: 0.08, lp: 4000 })));
+        },
+        // the bell on top of the machine clanging for a win
+        jackpot() {
+          for (let i = 0; i < 14; i++) kit.fm(i * 0.075, 2100 + (i % 2) * 120, M({ ratio: 3.5, index: 1.2, v: 0.05, d: 0.25, rev: 0.2 }));
+        },
+      };
+      function sfx(name, a, b) { if (audio()) try { SFX[name](a, b); } catch (e) { /* audio unavailable */ } }
+
+      // The machine's own tune: a cheerful chiptune that loops softly while the game is on.
+      const TUNE = [12, null, 4, null, 7, null, 4, null, 9, null, 7, null, 4, null, 2, null,
+        0, null, 2, null, 4, null, 7, null, 4, null, 2, null, 0, null, null, null];
+      const TUNE_BASS = [0, 0, -5, -5, -7, -7, -5, -5];
+      let musicOn = false, mStep = 0, mNext = 0, mTimer = 0, mGain = null;
+      function music(on) {
+        if (on === musicOn) return;
+        musicOn = on;
+        if (on) {
+          if (!audio()) { musicOn = false; return; }
+          mGain = ac.createGain(); mGain.gain.value = 0.55; mGain.connect(mbus);
+          mStep = 0; mNext = ac.currentTime + 0.1;
+          mTimer = setInterval(musicTick, 50);
+        } else {
+          clearInterval(mTimer);
+          if (mGain) { const g = mGain; g.gain.setTargetAtTime(0.0001, ac.currentTime, 0.08); setTimeout(() => { try { g.disconnect(); } catch (e) { /* ignore */ } }, 600); mGain = null; }
+        }
+      }
+      function musicTick() {
+        if (!ac || ac.state !== 'running') return;
+        const st = 60 / 150 / 2;   // 8th notes at 150 bpm
+        if (mNext < ac.currentTime) mNext = ac.currentTime + 0.05;
+        while (mNext < ac.currentTime + 0.2) {
+          if (!ctx.sound.muted) {
+            const t0 = mNext - ac.currentTime, n = TUNE[mStep % 32], D = o => Object.assign({ dest: mGain }, o);
+            if (n != null) kit.osc(t0, D({ f: 523.25 * Math.pow(2, n / 12), type: 'square', v: 0.022, hold: st * 0.6, d: st * 0.9, lp: 3500 }));
+            if (mStep % 4 === 0) kit.osc(t0, D({ f: 130.81 * Math.pow(2, TUNE_BASS[(mStep / 4) % 8] / 12), type: 'triangle', v: 0.09, hold: st * 1.5, d: st * 1.9 }));
+            if (mStep % 2 === 1) kit.noise(t0, D({ d: 0.03, v: 0.025, hp: 7000 }));
+          }
+          mStep++; mNext += st;
+        }
+      }
+
       function auto(ms) { if (AUTO) setTimeout(() => { if (!busy && !act.hidden) act.click(); }, ms); }
 
       /* Act 1: catch the jodi from the pile (whatever the claw grabs turns out to be the couple). */
@@ -601,13 +696,15 @@
         const target = caught === 0 ? G : B;
         say('Claw going down…');
         const dest = caught === 0 ? G.fx : (B.fx * W - .48 * dw) / W;
+        sfx('slide', 520);
         await slideTo(Math.max(.08, Math.min(.92, dest)), 520);
-        ctx.sound.play('whoosh');
         const L = grabLen(target.feet * H);
+        sfx('winch', 850, false);
         await setLen(L, 850);
-        claw.classList.add('claw-closed');
+        claw.classList.add('claw-closed'); sfx('close');
         await wait(280);
         target.held = true; target.off = target === G ? 0 : .48;
+        sfx('winch', 900, true);
         await setLen(8, 900);
         target.el.classList.add('claw-revealed');
         ctx.sound.play('ding'); flash(target, 'claw-wiggle', 1400);
@@ -648,14 +745,16 @@
         const i = zoneIdx, e = evs[i], last = i === N - 1;
         setBusy(true); markZones();
         say(`Off to ${zoneLabel(i)}…`);
+        sfx('slide', 650);
         await slideTo(zoneCx(i), 650);
-        ctx.sound.play('whoosh');
         const L = grabLen(zoneFeet(i));
+        sfx('winch', 800, false);
         await setLen(L, 800);
-        claw.classList.remove('claw-closed');
+        claw.classList.remove('claw-closed'); sfx('open');
         [G, B].forEach(d => { d.fx = (clawPx() + d.off * dw) / W; d.held = false; d.rest = 'zone'; d.zi = i; });
         await tween(260, k => { G.dy = B.dy = Math.sin(k * Math.PI) * -9; draw(); });
         G.dy = B.dy = 0; draw();
+        sfx('thud'); sfx('winch', 400, true);
         setLen(Math.max(8, L - 46), 400);
         ctx.sound.play('pop');
 
@@ -675,10 +774,12 @@
         if (G.dy) await tween(300, k => { G.dy *= (1 - k); draw(); });
         G.dy = 0;
         G.fx = (zoneCx(i) * W - .48 * dw) / W; B.fx = (zoneCx(i) * W + .48 * dw) / W; draw();
+        sfx('winch', 450, false);
         await setLen(L, 450);
-        claw.classList.add('claw-closed');
+        claw.classList.add('claw-closed'); sfx('close');
         await wait(220);
         G.held = true; G.off = -.48; B.held = true; B.off = .48;
+        sfx('winch', 650, true);
         await setLen(8, 650);
         say(`Next stop: ${zoneLabel(zoneIdx)}. Press Girao!`);
         setBtn('Girao!', `At ${zoneLabel(zoneIdx)}`);
@@ -750,8 +851,9 @@
 
       async function finale() {
         say('JACKPOT: you’re invited! 🎉');
+        music(false); sfx('slide', 500);
         setLen(8, 500); slideTo(.5, 500);
-        reveal(); confetti(); ctx.sound.play('success');
+        reveal(); confetti(); ctx.sound.play('success'); sfx('jackpot');
         setBtn('View invitation');
         await wait(RM ? 200 : 1100);
         jackEl.scrollIntoView({ behavior: smooth, block: 'start' });
@@ -762,6 +864,7 @@
 
       function skip() {
         if (busy) return;
+        music(false);
         ctx.sound.play('whoosh');
         finalState();
         reveal();
@@ -774,6 +877,7 @@
       act.addEventListener('click', () => {
         if (busy) return;
         ctx.sound.play('tap');
+        if (phase === 'catch' && caught === 0 && !musicOn) { sfx('coin'); setTimeout(() => music(true), 600); }
         if (phase === 'catch') grab();
         else if (phase === 'zones') dropZone();
         else openFullDeck(0);
