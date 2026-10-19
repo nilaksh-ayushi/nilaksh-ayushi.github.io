@@ -127,7 +127,7 @@
     };
     if (has(2)) return {
       key: 'mehandi', title: 'Mehandi', titleHi: 'मेहंदी',
-      line: 'invite you to an afternoon of mehandi, geet and dinner ahead of the wedding of their son',
+      line: 'invite you to an afternoon of mehandi and geet ahead of the wedding of their son',
       lineHi: 'अपने सुपुत्र के विवाह से पूर्व मेहंदी एवं गीत में आपको सादर आमंत्रित करते हैं',
     };
     return {
