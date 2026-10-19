@@ -1,6 +1,6 @@
 /* Sangeet Playlist: a 90s Bollywood mixtape. Signature card for group 5 (Engagement), works for any group.
-   Press PLAY on the deck: the reels spin, the tape winds, the VU meter dances to a synthesised dhol loop,
-   and the LCD scrolls each event as a "track". At the end of Side A the J-card unfolds into liner notes
+   Press PLAY on the deck: the reels spin, the tape winds, and the LCD scrolls each event as a "track", each
+   with its own synthesised music (see STYLES); the tape fast-forwards between tracks and Rewind spools back. At the end of Side A the J-card unfolds into liner notes
    (ctx.summaryHTML). Rewind replays, Eject flips to Side B (dance-floor rules), Pause pauses. */
 (function () {
   'use strict';
@@ -53,8 +53,9 @@
     events.forEach(ev => {
       const name = (ev.en || ev).name;   // English name, also in Hindi mode
       let titles = ev.id === 'engagement' ? engagementTitles(name) : [TRACK_TITLES[ev.id] || name + ' (Live)'];
+      const en = titles;
       if (hi) titles = titles.map(x => TITLES_HI[x] || x.replace(name, ev.name).replace(' (Live)', ' (लाइव)'));
-      titles.forEach((title, k) => out.push({ no: out.length + 1, title, ev, first: k === 0 }));
+      titles.forEach((title, k) => out.push({ no: out.length + 1, title, ev, first: k === 0, style: styleOf(ev.id, en[k]) }));
     });
     return out;
   }
@@ -64,13 +65,107 @@
   }
   const pad2 = n => String(n).padStart(2, '0');
 
-  /* ---------- beat ---------- */
+  /* ---------- music: every track has its own style ----------
+     A style is a 2-bar loop (32 sixteenth-note steps) at its own tempo: drum lanes (one character per step,
+     '.' = rest; the map turns a character into [instrument, velocity]), tunes in sargam, a bassline (step → Hz)
+     and a chord pad (one chord per bar). Tunes have one token per step: S r R g G m M P d D n N (lower-case
+     r g d n = komal, M = tivra), a digit for another octave (N0 = the Ni below, S2 = the Sa above), '-' holds
+     the note, '.' rests. */
+  const SW = { S: 0, r: 1, R: 2, g: 3, G: 4, m: 5, M: 6, P: 7, d: 8, D: 9, n: 10, N: 11 };
+  const note = (x, sa) => sa * Math.pow(2, (SW[x[0]] + 12 * (x.length > 1 ? +x[1] - 1 : 0)) / 12);
+  const chord = (sa, s) => s.split(' ').map(x => note(x, sa));
+  function tune(str, sa) {
+    const out = {};
+    let last = -1;
+    str.trim().split(/\s+/).forEach((x, i) => {
+      if (x === '-') { if (last >= 0) out[last][1]++; return; }
+      last = -1;
+      if (x === '.') return;
+      out[i] = [note(x, sa), 1];
+      last = i;
+    });
+    return out;
+  }
+  const DHOL = { D: ['dagga', 1], d: ['dagga', 0.6], h: ['tilli', 1], t: ['tilli', 0.45] };
+  const DHOLAK = { D: ['dha', 1], g: ['ge', 1], n: ['na', 1], N: ['na', 0.6], t: ['ti', 1], k: ['ti', 0.6] };
+  const TABLA = { D: ['dha', 0.7], g: ['ge', 0.7], n: ['na', 0.8], t: ['tin', 1], k: ['ti', 0.5] };
+  const PERC = { K: ['kick', 1], k: ['kick', 0.45], C: ['clap', 1], c: ['clap', 0.5], h: ['hat', 1], o: ['ohat', 1], s: ['shaker', 1],
+    x: ['spoon', 1], j: ['ching', 1], q: ['chak', 1], g: ['ghung', 1], z: ['chimta', 1] };
+  const STYLES = {
+    // a dhol pick-up under the "Side A" title
+    intro: { bpm: 100, lanes: [['D...t.t.ttth', DHOL, 0.7]] },
+    // Sagai: a soft romantic ballad (electric piano, gentle beat)
+    sagai: { bpm: 84,
+      lanes: [['k...c.....k.c...', PERC, 0.6], ['..s...s...s...s.', PERC, 0.2]],
+      tunes: [['keys', tune('P - G - P - D - P - - - G - R - S - R - G - - - R - S - - - . . . .', 523.25), 0.16]],
+      bass: { 0: 130.81, 10: 130.81, 16: 110, 26: 110 },
+      pad: ['keys', [chord(261.63, 'S G P'), chord(261.63, 'D0 S G')]] },
+    // Cocktail party: four-on-the-floor club beat, off-beat bass, chord stabs and a synth hook
+    cocktail: { bpm: 124,
+      lanes: [['K...K...K...K...', PERC, 0.9], ['....C.......C...', PERC, 0.6], ['..o...o...o...o.', PERC, 0.3], ['hh.hhh.hhh.hhh.h', PERC, 0.15]],
+      tunes: [['synth', tune('P2 . P2 . g2 . m2 . P2 . . . n . m2 . P2 . P2 . g2 . m2 . g2 . S2 . . . . .', 220), 0.05]],
+      bass: { 2: 110, 6: 110, 10: 110, 14: 110, 18: 87.31, 22: 87.31, 26: 98, 30: 98 },
+      stabs: [[3, 11], [chord(220, 'S g P'), chord(220, 'd0 S g')]] },
+    // Sangeet: bhangra (dhol chaal, tumbi riff, bass, harmonium chords, chimta)
+    sangeet: { bpm: 100, swing: 0.12,
+      lanes: [['D..hD.h.D..hDhh.', DHOL, 0.85], ['..z...z...z...z.', PERC, 0.3]],
+      tunes: [['tumbi', tune('S2 . . g2 . . m2 . g2 . . S2 . . n . S2 . . g2 . . P2 . m2 . g2 . S2 . . .', 329.63), 0.045]],
+      bass: { 0: 82.41, 3: 82.41, 6: 82.41, 8: 98, 11: 82.41, 14: 73.42, 16: 65.41, 19: 65.41, 22: 65.41, 24: 98, 27: 73.42, 30: 73.42 },
+      pad: ['harmonium', [chord(329.63, 'S0 g0 P0'), chord(261.63, 'S0 G0 P0')]] },
+    // Sunderkand: bhajan (dholak, manjira, harmonium)
+    bhajan: { bpm: 84,
+      lanes: [['D.g.n.t.n.k.D.n.', DHOLAK, 0.6], ['j...q...j...q...', PERC, 0.3]],
+      tunes: [['harmonium', tune('G - G - G - R G m - G - R - S - R - G - R - S - N0 - S - - - . .', 293.66), 0.06]],
+      pad: ['harmonium', [chord(293.66, 'S0 P0 S')]] },
+    // Mehandi geet: the ladies' dholak with spoon and claps, a bansuri tune, ghungroo
+    geet: { bpm: 104, swing: 0.1,
+      lanes: [['D.g.n.t.n.k.g.n.', DHOLAK, 0.7], ['..x...x...x...x.', PERC, 0.25], ['....C.......C...', PERC, 0.4], ['g...............................', PERC, 0.2]],
+      tunes: [['flute', tune('S - R - G - G - G - R - G P G - R - S - R - G - R - S - - - . . . .', 349.23), 0.08]] },
+    // Bhaat / Goad: auspicious shehnai over a drone, soft dholak
+    shehnai: { bpm: 92,
+      lanes: [['D...n...D.D.n...', DHOLAK, 0.6]],
+      tunes: [['shehnai', tune('P - D P m P G - R - G - R S - - N0 - S - R - G - R - S - - - . .', 440), 0.05]],
+      pad: ['harmonium', [chord(220, 'S P S2')]] },
+    // Haldi: bright and playful (santoor runs, dholak, claps, shaker, ghungroo)
+    haldi: { bpm: 116,
+      lanes: [['D.n.t.n.D.n.t.nk', DHOLAK, 0.6], ['....C.......C...', PERC, 0.45], ['ssssssssssssssss', PERC, 0.1], ['g.......g.......', PERC, 0.2]],
+      tunes: [['santoor', tune('S . G P S2 . P G R . G P D . P G S . G P S2 . D P G . R . S . . .', 523.25), 0.2]],
+      bass: { 0: 130.81, 8: 196, 16: 130.81, 24: 196 } },
+    // Sehra bandi & ghurchadi: shehnai over the dhol (raag Yaman)
+    ghodi: { bpm: 108, swing: 0.12,
+      lanes: [['D..hD.h.D..hDhh.', DHOL, 0.85]],
+      tunes: [['shehnai', tune('G - M D N - D P M - G - R - S - N0 R G - M G R - S - - - . . . .', 392), 0.05]] },
+    // Baraat: the brass band and a hard dhol
+    baraat: { bpm: 132,
+      lanes: [['D.hhD.hhD.hhDhDh', DHOL, 0.9], ['j...............', PERC, 0.3]],
+      tunes: [['brass', tune('S2 - S2 - N - D - P - D - N - S2 - R2 - S2 - N - D - P - - - P - - -', 261.63), 0.07]],
+      bass: { 0: 65.41, 8: 98, 16: 65.41, 24: 98 } },
+    // Dinner: a lounge interlude (sitar, light tabla, electric piano)
+    dinner: { bpm: 88, swing: 0.15,
+      lanes: [['D..t.nD.t..n.g..', TABLA, 0.5]],
+      tunes: [['sitar', tune('S . . G M . D . N . D . M G . . R . . S N0 . D0 . N0 . R . S . . .', 293.66), 0.18]],
+      bass: { 0: 73.42, 6: 73.42, 10: 110, 16: 98, 22: 98, 26: 146.83 },
+      pad: ['keys', [chord(146.83, 'S G P N'), chord(146.83, 'm P N R2')]] },
+    // Vidaai: unplugged (bansuri in Bhairavi over tanpura and harmonium, no drums)
+    vidaai: { bpm: 66,
+      tunes: [['flute', tune('S - r - g - - - m - g - r - S - n0 - S - r - g - r - S - - - - - - -', 440), 0.13],
+        ['santoor', tune('P0 . . . S . . . S . . . S0 . . . P0 . . . S . . . S . . . S0 . . .', 440), 0.07]],
+      pad: ['harmonium', [chord(220, 'S g P'), chord(174.61, 'S G P')]] },
+  };
+  const EVENT_STYLE = { sunderkand: 'bhajan', mehandi: 'geet', bhaat: 'shehnai', haldi: 'haldi', ghudchadi: 'ghodi',
+    baraat: 'baraat', dinner: 'dinner', vidaai: 'vidaai' };
+  function styleOf(id, title) {
+    if (id === 'engagement') {
+      const low = title.toLowerCase();
+      return /^sagai/.test(low) ? 'sagai' : /^goad/.test(low) ? 'shehnai' : /cocktail/.test(low) ? 'cocktail' : 'sangeet';
+    }
+    return EVENT_STYLE[id] || 'sangeet';
+  }
+
+  // For the VU meter when there is no audio.
   const BPM = 100;
   const STEP_MS = 60000 / BPM / 4;            // 16th notes
   const DRUM = 'D..hD.h.D..hDhh.';           // D = dhol bass (dagga), h = high (tilli)
-  const TUMBI = { 0: 659, 3: 784, 6: 880, 8: 784, 11: 659, 14: 587, 16: 659, 19: 784, 22: 988, 24: 880, 26: 784, 28: 659 };
-  const BASS = { 0: 82.41, 3: 82.41, 6: 82.41, 8: 98, 11: 82.41, 14: 73.42, 16: 65.41, 19: 65.41, 22: 65.41, 24: 98, 27: 73.42, 30: 73.42 };
-  const PAD = [[164.81, 196, 246.94], [130.81, 164.81, 196]];   // harmonium chords per bar: E minor, C major
 
   const ICONS = {
     rew: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.5 6v12L3 12zM21 6v12l-8.5-6z"/></svg>',
@@ -400,61 +495,83 @@
       const hubL = $('.cassette-face-a .cassette-hub-l'), hubR = $('.cassette-face-a .cassette-hub-r');
 
       const INTRO = RM ? 600 : 1800;
-      const TRACK = RM ? 2600 : (N <= 3 ? 4200 : N <= 5 ? 3400 : N <= 7 ? 3000 : 2600);
-      const TOTAL = INTRO + N * TRACK;
+      const TRACK = RM ? 2600 : (N <= 3 ? 5200 : N <= 5 ? 4200 : N <= 7 ? 3600 : 3000);
+      const SEEK = RM ? 0 : 750;      // the tape fast-forwards to each track
+      const SEG = SEEK + TRACK;
+      const TOTAL = INTRO + N * SEG;
+      // Where the tape is: track k (-1 = the intro) and whether it is still winding on to it.
+      function where(tt) {
+        if (tt < INTRO) return { k: -1, seek: false };
+        const k = Math.min(N - 1, Math.floor((tt - INTRO) / SEG));
+        return { k, seek: tt - INTRO - k * SEG < SEEK };
+      }
 
       let mode = 'idle';            // idle | play | pause | rew | end
+      let seeking = false;          // playing, but fast-forwarding to the next track
       let side = 'a';
       let t = 0, cur = -2, vStep = 0, rewRate = 8, after = null;
       let angL = 0, angR = 0;
       let lvl = [0, 0];
       let unfolded = false;
 
-      /* ---- audio (own WebAudio graph; checks ctx.sound.muted before every beat) ---- */
-      let ac = null, master = null, noiseBuf = null, aStep = 0, aNext = 0;
+      /* ---- audio: plays through the shared graph (ctx.sound.graph) and checks ctx.sound.muted before every note ---- */
+      let ac = null, kit = null, fx = null,  // fx: the shared bus, for deck noises that ignore the pause gate
+      master = null, mus = null, aK = -3, aStep = 0, aNext = 0;
       function ensureAudio() {
         try {
           if (!ac) {
-            // Play through the shared graph (its compressor and hall) when there is one.
             const g = ctx.sound.graph && ctx.sound.graph();
-            if (g) {
-              ac = g.ac;
-              master = ac.createGain(); master.gain.value = 0.5; master.connect(g.input);
-              const send = ac.createGain(); send.gain.value = 0.16; master.connect(send); send.connect(g.hall);
-            } else {
-              const A = window.AudioContext || window.webkitAudioContext;
-              if (!A) return null;
-              ac = new A();
-              master = ac.createGain(); master.gain.value = 0.5; master.connect(ac.destination);
-            }
-            const len = ac.sampleRate;
-            noiseBuf = ac.createBuffer(1, len, ac.sampleRate);
-            const ch = noiseBuf.getChannelData(0);
-            for (let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
+            if (!g) return null;
+            ac = g.ac; kit = g.kit; fx = g.input;
+            master = ac.createGain(); master.gain.value = 0.8; master.connect(g.input);
+            const send = ac.createGain(); send.gain.value = 0.16; master.connect(send); send.connect(g.hall);
+            newBus();
           }
           if (ac.state === 'suspended') ac.resume();
         } catch (e) { ac = null; }
         return ac;
+      }
+      // Each track plays into its own gain; starting a new one fades out whatever the last track left ringing.
+      function newBus() {
+        if (mus) {
+          const old = mus;
+          old.gain.setTargetAtTime(0.0001, ac.currentTime, 0.015);
+          setTimeout(() => { try { old.disconnect(); } catch (e) { /* ignore */ } }, 400);
+        }
+        mus = ac.createGain(); mus.connect(master);
       }
       function env(g, at, a, peak, d) {
         g.gain.setValueAtTime(0.0001, at);
         g.gain.exponentialRampToValueAtTime(peak, at + a);
         g.gain.exponentialRampToValueAtTime(0.0001, at + d);
       }
-      function noiseHit(at, dur, v, type, f) {
-        const s = ac.createBufferSource(), fl = ac.createBiquadFilter(), g = ac.createGain();
-        s.buffer = noiseBuf; fl.type = type; fl.frequency.value = f;
-        env(g, at, 0.002, v, dur);
-        s.connect(fl); fl.connect(g); g.connect(master);
-        s.start(at, Math.random() * 0.5, dur + 0.05);
-      }
-      function tone(at, f0, f1, dur, v, type) {
-        const o = ac.createOscillator(), g = ac.createGain();
-        o.type = type || 'sine';
-        o.frequency.setValueAtTime(f0, at); o.frequency.exponentialRampToValueAtTime(f1, at + dur * 0.7);
-        env(g, at, 0.004, v, dur);
-        o.connect(g); g.connect(master); o.start(at); o.stop(at + dur + 0.05);
-      }
+      const o0 = at => Math.max(0, at - ac.currentTime - 0.005);   // absolute time → the kit's "seconds from now"
+      const D = o => Object.assign({ dest: mus }, o);
+      const INS = {
+        dagga: (at, v) => kit.drum(o0(at), 118, 52, D({ v: 0.75 * v, d: 0.42, slap: 0.12 * v, sf: 600, pan: -0.15 })),
+        tilli: (at, v) => kit.drum(o0(at), 520, 400, D({ v: 0.22 * v, d: 0.12, slap: 0.22 * v, sf: 3200, pan: 0.25, glide: 0.05 })),
+        ge: (at, v) => kit.drum(o0(at), 140, 75, D({ v: 0.5 * v, d: 0.32, slap: 0.05 * v, sf: 500, pan: -0.1, glide: 0.2 })),
+        na: (at, v) => kit.drum(o0(at), 720, 660, D({ v: 0.18 * v, d: 0.22, slap: 0.18 * v, sf: 4200, pan: 0.2, glide: 0.15 })),
+        dha: (at, v) => { INS.ge(at, v); INS.na(at, 0.8 * v); },
+        ti: (at, v) => kit.drum(o0(at), 950, 900, D({ v: 0.07 * v, d: 0.06, slap: 0.14 * v, sf: 3000, pan: 0.2 })),
+        tin: (at, v) => kit.drum(o0(at), 880, 860, D({ v: 0.15 * v, d: 0.4, slap: 0.08 * v, sf: 5000, pan: 0.2, glide: 0.3 })),
+        ching: (at, v) => {
+          [2900, 4170, 5350].forEach((f, i) => kit.osc(o0(at), D({ f, v: 0.04 * v / (i + 1), a: 0.001, d: 0.7, pan: 0.35, rev: 0.25 })));
+          kit.noise(o0(at), D({ d: 0.05, v: 0.05 * v, hp: 6000, pan: 0.35 }));
+        },
+        chak: (at, v) => {
+          [2900, 4170].forEach(f => kit.osc(o0(at), D({ f, v: 0.025 * v, a: 0.001, d: 0.07, pan: 0.35 })));
+          kit.noise(o0(at), D({ d: 0.03, v: 0.06 * v, hp: 5000, pan: 0.35 }));
+        },
+        clap: (at, v) => [0, 0.011, 0.022].forEach((x, i) => kit.noise(o0(at) + x, D({ d: i === 2 ? 0.12 : 0.012, v: 0.2 * v, bp: 1300, q: 1.1, rev: 0.15 }))),
+        spoon: (at, v) => { kit.osc(o0(at), D({ f: 3300, v: 0.03 * v, a: 0.001, d: 0.05, pan: -0.3 })); kit.noise(o0(at), D({ d: 0.015, v: 0.05 * v, hp: 4000, pan: -0.3 })); },
+        shaker: (at, v) => kit.noise(o0(at), D({ a: 0.01, d: 0.06, v: 0.045 * v, hp: 6500, pan: 0.3 })),
+        kick: (at, v) => { kit.osc(o0(at), D({ f: 160, f2: 45, glide: 0.09, v: 0.7 * v, a: 0.002, d: 0.32 })); kit.noise(o0(at), D({ d: 0.01, v: 0.08 * v, hp: 2000 })); },
+        hat: (at, v) => kit.noise(o0(at), D({ d: 0.035, v: 0.05 * v, hp: 8000, pan: 0.2 })),
+        ohat: (at, v) => kit.noise(o0(at), D({ a: 0.003, d: 0.16, v: 0.05 * v, hp: 7000, pan: -0.2 })),
+        ghung: (at, v) => kit.ghungroo(o0(at), D({ n: 8, d: 0.25, v: 0.03 * v })),
+        chimta: (at, v) => { kit.noise(o0(at), D({ d: 0.06, v: 0.04 * v, bp: 5200, q: 1.5 })); kit.osc(o0(at), D({ f: 3400, v: 0.015 * v, a: 0.001, d: 0.08 })); },
+      };
       // Tumbi: a single bright string, plucked hard: the pitch snaps down and a resonant filter gives the twang.
       function tumbi(at, f, v) {
         const fl = ac.createBiquadFilter(), g = ac.createGain();
@@ -467,14 +584,14 @@
           o.frequency.setValueAtTime(f * 1.04, at); o.frequency.exponentialRampToValueAtTime(f, at + 0.025);
           o.connect(fl); o.start(at); o.stop(at + 0.35);
         });
-        fl.connect(g); g.connect(master);
+        fl.connect(g); g.connect(mus);
       }
       function bass(at, f) {
         const o = ac.createOscillator(), sub = ac.createOscillator(), fl = ac.createBiquadFilter(), g = ac.createGain();
         o.type = 'sawtooth'; o.frequency.value = f; sub.frequency.value = f;
         fl.type = 'lowpass'; fl.Q.value = 2; fl.frequency.setValueAtTime(700, at); fl.frequency.exponentialRampToValueAtTime(180, at + 0.2);
         env(g, at, 0.004, 0.2, 0.26);
-        o.connect(fl); sub.connect(fl); fl.connect(g); g.connect(master);
+        o.connect(fl); sub.connect(fl); fl.connect(g); g.connect(mus);
         o.start(at); sub.start(at); o.stop(at + 0.3); sub.stop(at + 0.3);
       }
       // Harmonium: two slightly detuned reeds per note, held for the bar.
@@ -488,42 +605,93 @@
           o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = c;
           o.connect(fl); o.start(at); o.stop(at + len + 0.05);
         }));
-        fl.connect(g); g.connect(master);
+        fl.connect(g); g.connect(mus);
       }
-      function playStep(s, at) {
-        const ch = DRUM[s % 16];
-        if (ch === 'D') { tone(at, 120, 50, 0.4, 0.75); noiseHit(at, 0.05, 0.16, 'bandpass', 600); }
-        else if (ch === 'h') { tone(at, 520, 390, 0.12, 0.22, 'triangle'); noiseHit(at, 0.05, 0.18, 'bandpass', 3200); }
-        if (s % 2 === 0 && ch !== 'D') noiseHit(at, 0.035, 0.05, 'highpass', 7000);
-        if (s % 4 === 2) { noiseHit(at, 0.06, 0.035, 'bandpass', 5200); tone(at, 3400, 3300, 0.07, 0.012); }   // chimta
-        const n = TUMBI[s % 32];
-        if (n && s >= 16) tumbi(at, n, 0.045);
-        const b = BASS[s % 32];
-        if (b && s >= 16) bass(at, b);
-        if (s >= 48 && s % 16 === 0) harmonium(at, PAD[(s / 16) % 2], 16 * STEP_MS / 1000);
+      // Lead voices: (time, Hz, length in s, volume).
+      const LEAD = {
+        harmonium: (at, f, l, v) => [-5, 5].forEach(c => kit.osc(o0(at), D({ f, det: c, type: 'sawtooth', v: v / 2, a: 0.03, hold: l * 0.85, d: l + 0.1, lp: 2200, rev: 0.2 }))),
+        shehnai: (at, f, l, v) => kit.osc(o0(at), D({ f: f * 0.97, f2: f, glide: 0.06, type: 'sawtooth', v, a: 0.03, hold: l * 0.8, d: l + 0.12, vib: [5.5, f * 0.012], lp: 2600, q: 3, rev: 0.3 })),
+        flute: (at, f, l, v) => {
+          kit.osc(o0(at), D({ f: f * 0.985, f2: f, glide: 0.05, type: 'triangle', v, a: 0.06, hold: l * 0.8, d: l + 0.15, vib: [5, f * 0.008], rev: 0.4 }));
+          kit.noise(o0(at), D({ a: 0.05, d: Math.min(0.4, l), v: v * 0.3, bp: f * 2, q: 3 }));
+        },
+        santoor: (at, f, l, v) => kit.pluck(o0(at), f, D({ v, pan: (Math.random() - 0.5) * 0.6, rev: 0.3 })),
+        sitar: (at, f, l, v) => {
+          kit.pluck(o0(at), f, D({ v, rev: 0.25 }));
+          kit.osc(o0(at), D({ f: f * 1.01, f2: f, glide: 0.08, type: 'sawtooth', v: v * 0.25, d: Math.max(0.3, l), lp: 3200, to: 700, q: 5 }));
+        },
+        brass: (at, f, l, v) => {
+          [-8, 0, 8].forEach(c => kit.osc(o0(at), D({ f, det: c, type: 'sawtooth', v: v / 3, a: 0.035, hold: l * 0.7, d: l + 0.08, lp: 1000, to: 2600, vib: [6, f * 0.006], rev: 0.15 })));
+          kit.osc(o0(at), D({ f: f / 2, type: 'sawtooth', v: v / 4, a: 0.03, hold: l * 0.7, d: l + 0.08, lp: 900 }));
+        },
+        keys: (at, f, l, v) => kit.fm(o0(at), f, D({ ratio: 1, index: 1.1, v, d: Math.max(0.7, l + 0.5), rev: 0.35 })),
+        synth: (at, f, l, v) => ['square', 'sawtooth'].forEach((type, i) => kit.osc(o0(at), D({ f, det: i ? 9 : 0, type, v: v / 2, a: 0.004, hold: l * 0.5, d: l + 0.05, lp: 3000, to: 900, q: 3, rev: 0.2 }))),
+        tumbi: (at, f, l, v) => tumbi(at, f, v),
+      };
+      const PADS = {
+        harmonium,
+        keys: (at, notes, len) => notes.forEach(f => kit.fm(o0(at), f, D({ ratio: 1, index: 0.7, v: 0.035, a: 0.01, d: len, rev: 0.35 }))),
+        stab: (at, notes) => notes.forEach(f => [-7, 7].forEach(c => kit.osc(o0(at), D({ f, det: c, type: 'sawtooth', v: 0.018, a: 0.004, d: 0.18, lp: 2400, to: 700, q: 2, rev: 0.25 })))),
+      };
+      // One step of a style: plays it (unless muted) and returns how hard it hits, for the VU meter.
+      function runStep(st, s, at, play) {
+        const ls = s % 32, stepS = 15 / st.bpm;
+        let a = 0;
+        (st.lanes || []).forEach(([pat, map, w]) => {
+          const h = map[pat[s % pat.length]];
+          if (h) { if (play) INS[h[0]](at, h[1]); a = Math.max(a, w * h[1]); }
+        });
+        (st.tunes || []).forEach(([voice, notes, v]) => {
+          const n = notes[ls];
+          if (n) { if (play) LEAD[voice](at, n[0], n[1] * stepS, v); a = Math.max(a, 0.5); }
+        });
+        if (play && st.bass && st.bass[ls]) bass(at, st.bass[ls]);
+        if (play && st.pad && ls % 16 === 0) PADS[st.pad[0]](at, st.pad[1][(ls / 16) % st.pad[1].length], 16 * stepS);
+        if (play && st.stabs && st.stabs[0].indexOf(ls % 16) >= 0) PADS.stab(at, st.stabs[1][Math.floor(ls / 16) % st.stabs[1].length]);
+        return a;
+      }
+      function bump(a, ms) {
+        setTimeout(() => { lvl[0] = Math.max(lvl[0], a + Math.random() * 0.12); lvl[1] = Math.max(lvl[1], a - 0.05 + Math.random() * 0.12); }, Math.max(0, ms));
       }
       function audioTick() {
         if (!ac || ac.state !== 'running' || mode !== 'play') return;
-        const stepS = STEP_MS / 1000;
-        if (aNext < ac.currentTime) aNext = ac.currentTime + 0.05;
+        const w = where(t);
+        if (w.seek) { if (aK !== -3) { aK = -3; newBus(); } return; }   // silent while the tape winds on
+        if (w.k !== aK) { if (aK !== -3) newBus(); aK = w.k; aStep = 0; aNext = ac.currentTime + 0.03; }
+        const st = STYLES[w.k < 0 ? 'intro' : tracks[w.k].style], stepS = 15 / st.bpm;
+        if (aNext < ac.currentTime) aNext = ac.currentTime + 0.03;
         while (aNext < ac.currentTime + 0.15) {
-          if (!ctx.sound.muted) playStep(aStep, aNext + (aStep % 2 ? stepS * 0.12 : 0));
+          const at = aNext + (st.swing && aStep % 2 ? stepS * st.swing : 0);
+          const a = runStep(st, aStep, at, !ctx.sound.muted);
+          if (a) bump(a, (at - ac.currentTime) * 1000);
           aStep++; aNext += stepS;
         }
+      }
+      // The tape winding at speed (fast-forward between tracks, or rewinding): motor whir, hiss, the music
+      // chattering past at chipmunk pitch, and the clunk when it stops.
+      function windSound(dur, back) {
+        if (!ac || ac.state !== 'running' || ctx.sound.muted) return;
+        const M = o => Object.assign({ dest: fx }, o);
+        kit.osc(0.02, M({ f: back ? 900 : 220, f2: back ? 320 : 760, glide: dur, type: 'sawtooth', v: 0.03, a: 0.08, hold: Math.max(0.05, dur - 0.2), d: dur, lp: 2000 }));
+        kit.noise(0.02, M({ a: 0.08, hold: Math.max(0.05, dur - 0.2), d: dur, v: 0.05, bp: 2600, q: 0.8 }));
+        for (let x = 0.05; x < dur - 0.08; x += 0.035 + Math.random() * 0.02) {
+          kit.osc(x, M({ f: 700 + Math.random() * 2200, type: 'square', v: 0.012, a: 0.002, d: 0.03, lp: 3200 }));
+        }
+        kit.osc(dur, M({ f: 150, f2: 70, v: 0.2, d: 0.07 }));
+        kit.noise(dur, M({ d: 0.02, v: 0.1, hp: 2500 }));
       }
       function audioGate(on) {
         if (!ac || !master) return;
         try {
           const now = ac.currentTime;
           master.gain.cancelScheduledValues(now);
-          if (on) master.gain.setValueAtTime(0.5, now); else master.gain.setTargetAtTime(0.0001, now, 0.02);
+          if (on) master.gain.setValueAtTime(0.8, now); else master.gain.setTargetAtTime(0.0001, now, 0.02);
         } catch (e) { /* ignore */ }
       }
       function clunk() {
         if (!ac || ac.state !== 'running' || ctx.sound.muted) return;
-        audioGate(true);
-        const now = ac.currentTime + 0.01;
-        tone(now, 180, 70, 0.12, 0.35); noiseHit(now, 0.06, 0.25, 'lowpass', 1500);
+        kit.osc(0.01, { f: 180, f2: 70, v: 0.35, d: 0.12, dest: fx });
+        kit.noise(0.01, { d: 0.06, v: 0.25, lp: 1500, dest: fx });
       }
 
       /* ---- LCD ---- */
@@ -546,7 +714,8 @@
         marquee(lcdTitle); marquee(lcdInfo);
       }
       function paintState() {
-        lcdState.textContent = { idle: '■', play: '▶', pause: '❚❚', rew: '◀◀', end: '■' }[mode];
+        lcdState.textContent = mode === 'play' && seeking ? '▶▶' : { idle: '■', play: '▶', pause: '❚❚', rew: '◀◀', end: '■' }[mode];
+        wrap.classList.toggle('is-winding', mode === 'rew' || (mode === 'play' && seeking));
         keys.play.classList.toggle('is-down', mode === 'play' || mode === 'rew');
         keys.play.setAttribute('aria-pressed', String(mode === 'play'));
         keys.pause.classList.toggle('is-down', mode === 'pause');
@@ -584,7 +753,6 @@
         const j = () => Math.random() * 0.12;
         let a = 0;
         if (ch === 'D') a = 0.84; else if (ch === 'h') a = 0.62; else if (s % 2 === 0) a = 0.38;
-        if (TUMBI[s % 32] && s >= 16) a += 0.1;
         if (a) { lvl[0] = Math.max(lvl[0], a + j()); lvl[1] = Math.max(lvl[1], a - 0.05 + j()); }
       }
       function drawVU() {
@@ -600,19 +768,21 @@
         lastT = n;
         if (mode === 'play') {
           t += dt;
-          const st = Math.floor(t / STEP_MS);
-          while (vStep < st) { vStep++; hit(vStep); }
+          const w = where(t);
+          if (w.seek !== seeking) { seeking = w.seek; if (seeking) windSound(SEEK / 1000, false); paintState(); }
+          if (seeking) flicker();
+          else if (!ac) { const st = Math.floor(t / STEP_MS); while (vStep < st) { vStep++; hit(vStep); } }
           audioTick();
-          setTrack(t < INTRO ? -1 : Math.min(N - 1, Math.floor((t - INTRO) / TRACK)));
+          setTrack(w.k);
           if (t >= TOTAL) { t = TOTAL; endSide(); }
         } else if (mode === 'rew') {
           t -= dt * rewRate;
-          if (Math.random() < 0.5) { lvl[0] = Math.max(lvl[0], 0.25 + Math.random() * 0.3); lvl[1] = Math.max(lvl[1], 0.2 + Math.random() * 0.3); }
+          flicker();
           if (t <= 0) { t = 0; rewDone(); }
         }
         const r = drawTape();
         if (mode === 'play' || mode === 'rew') {
-          const dir = mode === 'rew' ? -rewRate : (RM ? 0.4 : 1);
+          const dir = mode === 'rew' ? -rewRate : seeking ? 8 : (RM ? 0.4 : 1);
           const K = 360 * R_MIN * 0.9;
           angL = (angL + dir * K / r[0] * dt / 1000) % 360;
           angR = (angR + dir * K / r[1] * dt / 1000) % 360;
@@ -624,6 +794,9 @@
         drawVU();
         const secs = Math.floor(t / 1000);
         lcdTime.textContent = `${Math.floor(secs / 60)}:${pad2(secs % 60)}`;
+      }
+      function flicker() {   // the meters twitch while the tape winds
+        if (Math.random() < 0.5) { lvl[0] = Math.max(lvl[0], 0.25 + Math.random() * 0.3); lvl[1] = Math.max(lvl[1], 0.2 + Math.random() * 0.3); }
       }
       function frame() { raf = 0; tick(); if (active()) raf = requestAnimationFrame(frame); }
       function loop() {
@@ -642,7 +815,7 @@
       function play() {
         if (mode === 'play' || mode === 'rew') return;
         if (mode === 'end') { rewind(); return; }
-        if (t === 0) { vStep = 0; aStep = 0; cur = -2; }
+        if (t === 0) { vStep = 0; aStep = 0; aK = -2; seeking = false; cur = -2; }
         vStep = Math.floor(t / STEP_MS);
         aNext = 0;
         mode = 'play';
@@ -664,7 +837,8 @@
         cur = -2;
         lcdTrk.textContent = `${TRK} --/${pad2(N)}`;
         lcd(t_('◀◀ REWINDING…', '◀◀ रिवाइंड हो रहा है…'), t_('ONE MORE TIME, FROM THE TOP', 'एक बार फिर, शुरू से'));
-        ctx.sound.play('whoosh');
+        seeking = false;
+        windSound(Math.min(2.5, t / rewRate / 1000), true);
         paintState(); loop();
       }
       function rewDone() { mode = 'idle'; play(); }

@@ -204,7 +204,7 @@
 
     /* -- building blocks. Times (t0) are seconds from now. Shared options: v volume, a attack, hold (stay at v
           this long), d total length, lp/hp/bp filter Hz with `to` = sweep target and q, pan (-1..1) with
-          pan2 = sweep target, rev = how much goes to the hall (0..1). -- */
+          pan2 = sweep target, rev = how much goes to the hall (0..1), dest = node to play into (default: the bus). -- */
     const at = t0 => ac.currentTime + 0.005 + (t0 || 0);
     const rnd = (a, b) => a + Math.random() * (b - a);
     function out(node, t, o) {
@@ -215,7 +215,7 @@
         if (o.pan2 != null) p.pan.linearRampToValueAtTime(o.pan2, t + (o.d || 0.3));
         n.connect(p); n = p;
       }
-      n.connect(bus);
+      n.connect(o.dest || bus);
       if (o.rev) { const s = ac.createGain(); s.gain.value = o.rev; n.connect(s); s.connect(hall); }
     }
     function envelope(g, t, o) {
@@ -277,9 +277,9 @@
     function brass(t0, f, o) {
       const v = o.v || 0.1, d = o.d || 3, rev = o.rev == null ? 0.45 : o.rev;
       BRASS.forEach(([r, amp, len]) => [-1, 1].forEach(sg =>
-        osc(t0, { f: f * r + sg * rnd(0.8, 2.2), v: v * amp / 2, a: 0.002, d: d * len, pan: o.pan, rev })));
-      osc(t0, { f: f * 0.5, v: v * 0.25, a: 0.01, d: d * 0.8, rev: 0.3 });
-      noise(t0, { d: 0.03, v: v * 0.8, bp: Math.min(f * 6, 9000), q: 2, pan: o.pan });
+        osc(t0, { f: f * r + sg * rnd(0.8, 2.2), v: v * amp / 2, a: 0.002, d: d * len, pan: o.pan, rev, dest: o.dest })));
+      osc(t0, { f: f * 0.5, v: v * 0.25, a: 0.01, d: d * 0.8, rev: 0.3, dest: o.dest });
+      noise(t0, { d: 0.03, v: v * 0.8, bp: Math.min(f * 6, 9000), q: 2, pan: o.pan, dest: o.dest });
     }
     // Plucked / hammered string (Karplus–Strong), rendered once per pitch: santoor.
     function pluck(t0, f, o) {
@@ -301,8 +301,8 @@
     }
     // Hand drum: a sine that drops in pitch (the skin) plus a slap of filtered noise (the hand).
     function drum(t0, f, f2, o) {
-      osc(t0, { f, f2, glide: o.glide || 0.12, v: o.v || 0.6, a: 0.002, d: o.d || 0.35, pan: o.pan, rev: o.rev || 0.08 });
-      noise(t0, { d: o.sd || 0.05, v: o.slap || 0.15, bp: o.sf || 1500, q: 1.2, pan: o.pan });
+      osc(t0, { f, f2, glide: o.glide || 0.12, v: o.v || 0.6, a: 0.002, d: o.d || 0.35, pan: o.pan, rev: o.rev || 0.08, dest: o.dest });
+      noise(t0, { d: o.sd || 0.05, v: o.slap || 0.15, bp: o.sf || 1500, q: 1.2, pan: o.pan, dest: o.dest });
     }
     const dagga = (t0, v) => drum(t0, 118, 52, { v: (v || 1) * 0.75, d: 0.42, slap: (v || 1) * 0.12, sf: 600, pan: -0.15 });
     const tilli = (t0, v) => drum(t0, 520, 400, { v: (v || 1) * 0.22, d: 0.12, slap: (v || 1) * 0.22, sf: 3200, pan: 0.25, glide: 0.05 });
@@ -322,10 +322,10 @@
       const n = o.n || 16, d = o.d || 0.5, v = o.v || 0.05;
       for (let i = 0; i < n; i++) {
         const tt = t0 + d * Math.pow(i / n, 1.6) + rnd(0, 0.02), f = rnd(3800, 6800), p = rnd(-0.5, 0.5);
-        osc(tt, { f, v: v * (1 - i / n * 0.6), a: 0.001, d: rnd(0.06, 0.16), pan: p, rev: 0.25 });
-        osc(tt, { f: f * 1.47, v: v * 0.3, a: 0.001, d: 0.05, pan: p });
+        osc(tt, { f, v: v * (1 - i / n * 0.6), a: 0.001, d: rnd(0.06, 0.16), pan: p, rev: 0.25, dest: o.dest });
+        osc(tt, { f: f * 1.47, v: v * 0.3, a: 0.001, d: 0.05, pan: p, dest: o.dest });
       }
-      noise(t0, { a: 0.01, d: d * 0.6, v: v * 1.2, hp: 6000 });
+      noise(t0, { a: 0.01, d: d * 0.6, v: v * 1.2, hp: 6000, dest: o.dest });
     }
     // Shehnai: a reedy sawtooth with vibrato that slides into each note (meend). notes: [[Hz, start, length], ...]
     function shehnai(t0, notes, v) {
@@ -494,8 +494,9 @@
       },
       hush,
       setTheme(id) { theme = id || ''; },
-      // The shared audio graph, for a variant that makes its own music (cassette): { ac, input, hall } or null.
-      graph() { return ctxA() ? { ac, input: bus, hall } : null; },
+      // The shared audio graph, for a variant that makes its own music (cassette): { ac, input, hall, kit } or
+      // null. kit holds the instruments above; they take t0 in seconds from now and a `dest` node.
+      graph() { return ctxA() ? { ac, input: bus, hall, kit: { osc, noise, fm, pluck, drum, brass, ghungroo } } : null; },
       get muted() { return muted; },
       setMuted(v) {
         muted = !!v;

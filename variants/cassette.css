@@ -166,6 +166,11 @@ html.v-cassette [hidden] { display: none !important; }
 }
 .cassette-lcd-row { display: flex; align-items: baseline; gap: 8px; font-size: 17px; line-height: 1.1; color: #cfa868; }
 .cassette-lcd-state { width: 18px; color: #e8a9b1; text-shadow: 0 0 6px rgba(232, 169, 177, .6); }
+/* winding (fast-forward between tracks, rewind): the state glyph blinks and the reels blur with speed */
+.cassette-lcd-state { white-space: nowrap; }
+.is-winding .cassette-lcd-state { animation: cassette-wind .32s steps(2, jump-none) infinite; }
+.is-winding .cassette-face-a .cassette-hub { filter: blur(.7px); }
+@keyframes cassette-wind { 50% { opacity: .2; } }
 .cassette-lcd-label { flex: 1; letter-spacing: .08em; }
 .cassette-lcd-line { overflow: hidden; white-space: nowrap; }
 .cassette-lcd-line span { display: inline-block; will-change: transform; }
