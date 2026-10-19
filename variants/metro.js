@@ -98,7 +98,7 @@
             <div class="metro-pass"><span class="metro-flap metro-flap-l"></span><span class="metro-flap metro-flap-r"></span></div>
             <div class="metro-cab metro-cab-r"><span class="metro-light"></span></div>
           </div>
-          <p class="metro-status" aria-live="polite">${t('Your card is ready. Touch in at the gate.', 'आपका कार्ड तैयार है। गेट पर कार्ड टच करें।')}</p>
+          <p class="metro-status" aria-live="polite">${t('Please tap your card to enter.', 'कृपया प्रवेश के लिए अपना कार्ड टैप करें।')}</p>
           <button type="button" class="metro-cta metro-touch">${ICON_TAP}<span>${t('Touch in', 'टच करें')}</span></button>
         </section>
 
@@ -208,6 +208,8 @@
       }, 55);
       timers.push(setTimeout(() => clearInterval(id), delay + 4000));
     }
+    const WELCOME_HI = 'शादी एक्सप्रेस में आपका स्वागत है। कृपया दरवाज़ों से हटकर खड़े हों। सफ़र का आनंद लें।';
+    const WELCOME_EN = 'Welcome aboard the Shaadi Express. Please stand clear of the doors. Enjoy the ride.';
     let platformShown = false;
     function showPlatform() {
       if (platformShown) return; platformShown = true;
@@ -219,9 +221,11 @@
       later(() => { eta.textContent = t('ARRIVING IN 30 SEC', '30 सेकंड में आ रही है'); }, T(2100));
       later(() => {
         eta.textContent = t('ARRIVING NOW', 'ट्रेन आ रही है'); eta.classList.add('is-blink'); sec.classList.add('is-arriving'); ctx.sound.play('whoosh');
-        ctx.sound.say([{ text: 'शादी एक्सप्रेस प्लेटफ़ॉर्म पर आ रही है।', lang: 'hi' }, { text: t('The Shaadi Express is arriving on the platform.', ''), lang: 'en' }], 300);
       }, T(2800));
-      later(() => { sec.classList.add('is-doors'); ctx.sound.play('ding'); }, T(4300));
+      later(() => {
+        sec.classList.add('is-doors'); ctx.sound.play('ding');
+        ctx.sound.say([{ text: WELCOME_HI, lang: 'hi' }, { text: t(WELCOME_EN, ''), lang: 'en' }], 800);
+      }, T(4300));
       later(() => {
         btn.hidden = false; eta.textContent = t('NOW BOARDING', 'कृपया सवार हों'); eta.classList.remove('is-blink');
         if (!AUTO) btn.focus({ preventScroll: true });
@@ -259,10 +263,10 @@
       if (rideStarted) return; rideStarted = true;
       clearAll();
       show('ride');
-      annHi.textContent = 'शादी एक्सप्रेस में आपका स्वागत है। कृपया दरवाज़ों से हटकर खड़े हों। आपके लिए सीट आरक्षित है।';
-      annEn.textContent = t('Welcome aboard the Shaadi Express. Please stand clear of the doors. Seats are reserved for you.', '');
+      // The welcome was spoken on the platform as the doors opened; here it is only shown, so boarding doesn't cut it off.
+      annHi.textContent = WELCOME_HI;
+      annEn.textContent = t(WELCOME_EN, '');
       annDoors.textContent = '';
-      announce(200);
       signwrap.innerHTML = welcomeHTML();
       paintControls();
       if (AUTO) later(next, T(2600));
