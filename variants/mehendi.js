@@ -500,7 +500,7 @@
       svg.style.touchAction = '';
       const r = nameEl.getBoundingClientRect();
       sparkles(r.left + r.width / 2, r.top + r.height / 2);
-      ctx.sound.play(how === 'tap' ? 'success' : 'chime');
+      ctx.sound.play(how === 'tap' ? 'success' : 'dhol');   // mehendi theme: 'success' is the dhol starting up
       toast.innerHTML = how === 'tap'
         ? (HI ? `<b>मिल गया! 🎉</b><span>श्श्श… ${esc(Pp.bride)} की मेहंदी में नाम ढूँढना और मुश्किल होगा 😉</span>`
           : `<b>Mil gaya! 🎉</b><span>Psst… ${esc(Pp.bride)}’s mehendi will have a harder one 😉</span>`)

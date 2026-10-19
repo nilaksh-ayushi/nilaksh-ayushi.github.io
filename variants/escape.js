@@ -965,7 +965,7 @@
               <div class="escape-seq" aria-live="polite"></div>
               <div class="escape-pm-actions"><button type="button" class="escape-btn escape-primary" data-listen>Listen ▸</button></div>`;
             const pads = Array.prototype.slice.call(pmBody.querySelectorAll('.escape-pad')), seq = pmBody.querySelector('.escape-seq');
-            const hit = k => { const p = pads.find(x => x.dataset.k === k); p.classList.add('is-hit'); snd(k === 'na' ? 'ding' : 'tap'); setTimeout(() => p.classList.remove('is-hit'), 260); };
+            const hit = k => { const p = pads.find(x => x.dataset.k === k); p.classList.add('is-hit'); snd(k); setTimeout(() => p.classList.remove('is-hit'), 260); };
             pmBody.querySelector('[data-listen]').addEventListener('click', () => {
               if (ps.playing) return; ps.playing = true; ps.input = []; seq.innerHTML = ''; pmMsg('');
               pads.forEach(p => (p.disabled = true));

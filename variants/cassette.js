@@ -69,6 +69,8 @@
   const STEP_MS = 60000 / BPM / 4;            // 16th notes
   const DRUM = 'D..hD.h.D..hDhh.';           // D = dhol bass (dagga), h = high (tilli)
   const TUMBI = { 0: 659, 3: 784, 6: 880, 8: 784, 11: 659, 14: 587, 16: 659, 19: 784, 22: 988, 24: 880, 26: 784, 28: 659 };
+  const BASS = { 0: 82.41, 3: 82.41, 6: 82.41, 8: 98, 11: 82.41, 14: 73.42, 16: 65.41, 19: 65.41, 22: 65.41, 24: 98, 27: 73.42, 30: 73.42 };
+  const PAD = [[164.81, 196, 246.94], [130.81, 164.81, 196]];   // harmonium chords per bar: E minor, C major
 
   const ICONS = {
     rew: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.5 6v12L3 12zM21 6v12l-8.5-6z"/></svg>',
@@ -413,10 +415,18 @@
       function ensureAudio() {
         try {
           if (!ac) {
-            const A = window.AudioContext || window.webkitAudioContext;
-            if (!A) return null;
-            ac = new A();
-            master = ac.createGain(); master.gain.value = 0.5; master.connect(ac.destination);
+            // Play through the shared graph (its compressor and hall) when there is one.
+            const g = ctx.sound.graph && ctx.sound.graph();
+            if (g) {
+              ac = g.ac;
+              master = ac.createGain(); master.gain.value = 0.5; master.connect(g.input);
+              const send = ac.createGain(); send.gain.value = 0.16; master.connect(send); send.connect(g.hall);
+            } else {
+              const A = window.AudioContext || window.webkitAudioContext;
+              if (!A) return null;
+              ac = new A();
+              master = ac.createGain(); master.gain.value = 0.5; master.connect(ac.destination);
+            }
             const len = ac.sampleRate;
             noiseBuf = ac.createBuffer(1, len, ac.sampleRate);
             const ch = noiseBuf.getChannelData(0);
@@ -445,21 +455,52 @@
         env(g, at, 0.004, v, dur);
         o.connect(g); g.connect(master); o.start(at); o.stop(at + dur + 0.05);
       }
+      // Tumbi: a single bright string, plucked hard: the pitch snaps down and a resonant filter gives the twang.
       function tumbi(at, f, v) {
-        const o = ac.createOscillator(), fl = ac.createBiquadFilter(), g = ac.createGain();
-        o.type = 'square';
-        o.frequency.setValueAtTime(f * 1.03, at); o.frequency.exponentialRampToValueAtTime(f, at + 0.03);
-        fl.type = 'lowpass'; fl.frequency.setValueAtTime(3800, at); fl.frequency.exponentialRampToValueAtTime(800, at + 0.2);
-        env(g, at, 0.003, v, 0.22);
-        o.connect(fl); fl.connect(g); g.connect(master); o.start(at); o.stop(at + 0.3);
+        const fl = ac.createBiquadFilter(), g = ac.createGain();
+        fl.type = 'lowpass'; fl.Q.value = 7;
+        fl.frequency.setValueAtTime(4800, at); fl.frequency.exponentialRampToValueAtTime(700, at + 0.22);
+        env(g, at, 0.002, v, 0.28);
+        ['square', 'sawtooth'].forEach((type, i) => {
+          const o = ac.createOscillator();
+          o.type = type; o.detune.value = i ? 7 : 0;
+          o.frequency.setValueAtTime(f * 1.04, at); o.frequency.exponentialRampToValueAtTime(f, at + 0.025);
+          o.connect(fl); o.start(at); o.stop(at + 0.35);
+        });
+        fl.connect(g); g.connect(master);
+      }
+      function bass(at, f) {
+        const o = ac.createOscillator(), sub = ac.createOscillator(), fl = ac.createBiquadFilter(), g = ac.createGain();
+        o.type = 'sawtooth'; o.frequency.value = f; sub.frequency.value = f;
+        fl.type = 'lowpass'; fl.Q.value = 2; fl.frequency.setValueAtTime(700, at); fl.frequency.exponentialRampToValueAtTime(180, at + 0.2);
+        env(g, at, 0.004, 0.2, 0.26);
+        o.connect(fl); sub.connect(fl); fl.connect(g); g.connect(master);
+        o.start(at); sub.start(at); o.stop(at + 0.3); sub.stop(at + 0.3);
+      }
+      // Harmonium: two slightly detuned reeds per note, held for the bar.
+      function harmonium(at, notes, len) {
+        const fl = ac.createBiquadFilter(), g = ac.createGain();
+        fl.type = 'lowpass'; fl.frequency.value = 1500;
+        g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(0.045, at + 0.12);
+        g.gain.setValueAtTime(0.045, at + len - 0.15); g.gain.exponentialRampToValueAtTime(0.0001, at + len);
+        notes.forEach(f => [-6, 6].forEach(c => {
+          const o = ac.createOscillator();
+          o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = c;
+          o.connect(fl); o.start(at); o.stop(at + len + 0.05);
+        }));
+        fl.connect(g); g.connect(master);
       }
       function playStep(s, at) {
         const ch = DRUM[s % 16];
-        if (ch === 'D') { tone(at, 130, 52, 0.32, 0.75); noiseHit(at, 0.03, 0.18, 'lowpass', 900); }
-        else if (ch === 'h') { tone(at, 520, 380, 0.11, 0.22, 'triangle'); noiseHit(at, 0.05, 0.16, 'bandpass', 3200); }
+        if (ch === 'D') { tone(at, 120, 50, 0.4, 0.75); noiseHit(at, 0.05, 0.16, 'bandpass', 600); }
+        else if (ch === 'h') { tone(at, 520, 390, 0.12, 0.22, 'triangle'); noiseHit(at, 0.05, 0.18, 'bandpass', 3200); }
         if (s % 2 === 0 && ch !== 'D') noiseHit(at, 0.035, 0.05, 'highpass', 7000);
+        if (s % 4 === 2) { noiseHit(at, 0.06, 0.035, 'bandpass', 5200); tone(at, 3400, 3300, 0.07, 0.012); }   // chimta
         const n = TUMBI[s % 32];
-        if (n && s >= 16) tumbi(at, n, 0.05);
+        if (n && s >= 16) tumbi(at, n, 0.045);
+        const b = BASS[s % 32];
+        if (b && s >= 16) bass(at, b);
+        if (s >= 48 && s % 16 === 0) harmonium(at, PAD[(s / 16) % 2], 16 * STEP_MS / 1000);
       }
       function audioTick() {
         if (!ac || ac.state !== 'running' || mode !== 'play') return;

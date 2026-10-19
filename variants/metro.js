@@ -165,7 +165,7 @@
       skip.hidden = name === 'end';
       window.scrollTo(0, 0);
     }
-    skip.addEventListener('click', () => { clearAll(); showEnd(false); });
+    skip.addEventListener('click', () => { clearAll(); ctx.sound.hush(); showEnd(false); });
     show('card');
 
     /* ---------- 1. smart card + gate ---------- */
@@ -217,7 +217,10 @@
       flip($('.metro-board-dest2'), t('→ HAPPILY EVER AFTER', '→ ' + HEA_HI), 500);
       later(() => { eta.textContent = t('ARRIVING IN 1 MIN', '1 मिनट में आ रही है'); }, T(1300));
       later(() => { eta.textContent = t('ARRIVING IN 30 SEC', '30 सेकंड में आ रही है'); }, T(2100));
-      later(() => { eta.textContent = t('ARRIVING NOW', 'ट्रेन आ रही है'); eta.classList.add('is-blink'); sec.classList.add('is-arriving'); ctx.sound.play('whoosh'); }, T(2800));
+      later(() => {
+        eta.textContent = t('ARRIVING NOW', 'ट्रेन आ रही है'); eta.classList.add('is-blink'); sec.classList.add('is-arriving'); ctx.sound.play('whoosh');
+        ctx.sound.say([{ text: 'शादी एक्सप्रेस प्लेटफ़ॉर्म पर आ रही है।', lang: 'hi' }, { text: t('The Shaadi Express is arriving on the platform.', ''), lang: 'en' }], 300);
+      }, T(2800));
       later(() => { sec.classList.add('is-doors'); ctx.sound.play('ding'); }, T(4300));
       later(() => {
         btn.hidden = false; eta.textContent = t('NOW BOARDING', 'कृपया सवार हों'); eta.classList.remove('is-blink');
@@ -247,6 +250,11 @@
     const train = track.querySelector('.metro-train');
 
     let cur = 0, busy = false, rideStarted = false;
+    // Read the LED announcement out the way Delhi Metro does: a chime, then Hindi, then English.
+    function announce(delay) {
+      const parts = [{ text: annHi.textContent, lang: 'hi' }, { text: annEn.textContent, lang: 'en' }];
+      later(() => { ctx.sound.play('announce'); ctx.sound.say(parts, 750); }, T(delay));
+    }
     function startRide() {
       if (rideStarted) return; rideStarted = true;
       clearAll();
@@ -254,6 +262,7 @@
       annHi.textContent = 'शादी एक्सप्रेस में आपका स्वागत है।';
       annEn.textContent = t('Welcome aboard the Shaadi Express.', '');
       annDoors.textContent = '';
+      announce(200);
       signwrap.innerHTML = welcomeHTML();
       paintControls();
       if (AUTO) later(next, T(2600));
@@ -349,7 +358,7 @@
       busy = true;
       const nd = nodes[i], prev = cur;
       cur = i;
-      ctx.sound.play(prev === 0 ? 'whoosh' : 'tap');
+      ctx.sound.play('whoosh');
       // announcement
       annDoors.textContent = '';
       if (nd.type === 'stn' && single) {
@@ -362,9 +371,10 @@
         annHi.textContent = `इंटरचेंज स्टेशन। ${hiDate(nd.day.date)} के लिए यहाँ बदलें।`;
         annEn.textContent = t(`Interchange. Change here for ${enDate(nd.day.date)}, ${nd.line.en}.`, '');
       } else {
-        annHi.textContent = `यह ट्रेन यहीं समाप्त होती है: ${HEA_HI}।`;
-        annEn.textContent = t('This train terminates at Happily Ever After.', '');
+        annHi.textContent = 'यह ट्रेन यहीं समाप्त होती है। आशा है, इस सफ़र में आप हमारे साथ होंगे।';
+        annEn.textContent = t('This train terminates here. We hope you will accompany us on our journey.', '');
       }
+      announce(250);
       const old = signwrap.firstElementChild;
       if (old) old.classList.add('metro-out-anim');
       app.classList.add('is-moving');

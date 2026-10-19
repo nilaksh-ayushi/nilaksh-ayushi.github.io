@@ -29,7 +29,11 @@
                       no sound, nothing that needs a tap. The page is screenshotted at 540 CSS px wide.
      ctx.reducedMotion true when the user prefers reduced motion: skip/shorten animation, keep it usable.
      ctx.sound.play(name)  'tap' | 'pop' | 'chime' | 'ding' | 'bell' | 'dhol' | 'success' | 'whoosh' | 'splash'
-                      (synthesised; silent until the guest's first tap and when muted)
+                      (+ dholak bols 'dha' | 'dhin' | 'na'). Synthesised; silent until the guest's first tap and
+                      when muted. Each variant has a sound theme in core.js (themes.<id>) that gives these names its
+                      own sound, so a new variant can add one there instead of changing its calls.
+     ctx.sound.say([{ text, lang: 'hi' | 'en' }, ...], delayMs)  speak with the device's voice (skips a language
+                      the device has no voice for); ctx.sound.hush() stops it.
      ctx.esc(str)     HTML-escape
      ctx.summaryHTML(opts) standard details block (couple, family line, every event with Directions and
                       Add to calendar, host footer). Style via CSS variables (see core.css). opts:
@@ -164,54 +168,340 @@
     return lines.join('\r\n');
   }
 
-  /* ---------- sound (WebAudio, no files) ---------- */
+  /* ---------- sound (WebAudio, no files) ----------
+     Every card plays the same names (tap, pop, chime, ...) and each card has a theme that gives a name its own
+     sound: a 'ding' is the doors chime on the metro, a coin on the claw machine, a glass ting elsewhere.
+     The instruments are synthesised (struck brass, plucked santoor strings, dhol, ghungroo, a shehnai reed) and
+     everything runs through a soft compressor and a small synthetic hall. sound.say() speaks text with the
+     device's own voice (the metro announcements). */
   const sound = (function () {
-    let ac = null, unlocked = false, muted = false;
+    let ac = null, unlocked = false, muted = false, theme = '', bus = null, hall = null, nbuf = null;
+    const strings = {};
     try { muted = localStorage.getItem('invite-muted') === '1'; } catch (e) { /* storage blocked */ }
     function ctxA() {
-      if (!ac) { const A = root.AudioContext || root.webkitAudioContext; if (A) ac = new A(); }
+      if (!ac) { const A = root.AudioContext || root.webkitAudioContext; if (A) { ac = new A(); wire(); } }
       if (ac && ac.state === 'suspended') ac.resume();
       return ac;
     }
-    function tone(f, t0, dur, type, vol, f2) {
-      const a = ac, o = a.createOscillator(), g = a.createGain();
-      o.type = type || 'sine';
-      o.frequency.setValueAtTime(f, a.currentTime + t0);
-      if (f2) o.frequency.exponentialRampToValueAtTime(f2, a.currentTime + t0 + dur);
-      g.gain.setValueAtTime(0.0001, a.currentTime + t0);
-      g.gain.exponentialRampToValueAtTime(vol || 0.2, a.currentTime + t0 + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + t0 + dur);
-      o.connect(g).connect(a.destination); o.start(a.currentTime + t0); o.stop(a.currentTime + t0 + dur + 0.05);
+    function wire() {
+      const comp = ac.createDynamicsCompressor();
+      comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.25;
+      comp.connect(ac.destination);
+      bus = ac.createGain(); bus.gain.value = 0.9; bus.connect(comp);
+      // the hall: 2.4 s of decaying stereo noise as a reverb impulse
+      const sr = ac.sampleRate, len = Math.floor(sr * 2.4), ir = ac.createBuffer(2, len, sr);
+      for (let c = 0; c < 2; c++) {
+        const d = ir.getChannelData(c);
+        for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 4);
+      }
+      const conv = ac.createConvolver(); conv.buffer = ir;
+      hall = ac.createGain(); hall.gain.value = 0.5;
+      hall.connect(conv); conv.connect(comp);
+      nbuf = ac.createBuffer(1, sr, sr);
+      const ch = nbuf.getChannelData(0);
+      for (let i = 0; i < sr; i++) ch[i] = Math.random() * 2 - 1;
     }
-    function noise(t0, dur, vol, from, to) {
-      const a = ac, len = Math.floor(a.sampleRate * dur), buf = a.createBuffer(1, len, a.sampleRate);
-      const ch = buf.getChannelData(0); for (let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
-      const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
-      s.buffer = buf; f.type = 'bandpass'; f.Q.value = 0.8;
-      f.frequency.setValueAtTime(from, a.currentTime + t0); f.frequency.exponentialRampToValueAtTime(to, a.currentTime + t0 + dur);
-      g.gain.setValueAtTime(vol, a.currentTime + t0); g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + t0 + dur);
-      s.connect(f).connect(g).connect(a.destination); s.start(a.currentTime + t0);
+
+    /* -- building blocks. Times (t0) are seconds from now. Shared options: v volume, a attack, hold (stay at v
+          this long), d total length, lp/hp/bp filter Hz with `to` = sweep target and q, pan (-1..1) with
+          pan2 = sweep target, rev = how much goes to the hall (0..1). -- */
+    const at = t0 => ac.currentTime + 0.005 + (t0 || 0);
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    function out(node, t, o) {
+      let n = node;
+      if ((o.pan || o.pan2 != null) && ac.createStereoPanner) {
+        const p = ac.createStereoPanner();
+        p.pan.setValueAtTime(o.pan || 0, t);
+        if (o.pan2 != null) p.pan.linearRampToValueAtTime(o.pan2, t + (o.d || 0.3));
+        n.connect(p); n = p;
+      }
+      n.connect(bus);
+      if (o.rev) { const s = ac.createGain(); s.gain.value = o.rev; n.connect(s); s.connect(hall); }
     }
-    const presets = {
-      tap: () => tone(660, 0, 0.06, 'triangle', 0.12),
-      pop: () => tone(420, 0, 0.12, 'sine', 0.25, 900),
-      chime: () => { tone(988, 0, 0.5, 'sine', 0.2); tone(784, 0.28, 0.7, 'sine', 0.2); },
-      ding: () => { tone(1320, 0, 0.18, 'sine', 0.18); tone(1760, 0.09, 0.25, 'sine', 0.12); },
-      bell: () => { [523, 1046, 1569, 2092].forEach((f, i) => tone(f, 0, 2.4 - i * 0.4, 'sine', 0.12 / (i + 1))); },
-      dhol: () => { [0, 0.18, 0.36, 0.45, 0.63].forEach((t, i) => tone(i % 2 ? 180 : 90, t, 0.2, 'sine', 0.5, i % 2 ? 120 : 50)); },
-      success: () => [523, 659, 784, 1046].forEach((f, i) => tone(f, i * 0.09, 0.35, 'triangle', 0.15)),
-      whoosh: () => noise(0, 0.5, 0.25, 300, 3000),
-      splash: () => noise(0, 0.25, 0.35, 2000, 400),
+    function envelope(g, t, o) {
+      const v = o.v || 0.2, a = o.a || 0.004, d = o.d || 0.3;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(v, t + a);
+      if (o.hold) g.gain.setValueAtTime(v, t + a + o.hold);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    }
+    function filt(n, t, o) {
+      const type = o.lp ? 'lowpass' : o.hp ? 'highpass' : o.bp ? 'bandpass' : '';
+      if (!type) return n;
+      const f = ac.createBiquadFilter();
+      f.type = type; f.Q.value = o.q || 0.8;
+      f.frequency.setValueAtTime(o.lp || o.hp || o.bp, t);
+      if (o.to) f.frequency.exponentialRampToValueAtTime(o.to, t + (o.d || 0.3));
+      n.connect(f); return f;
+    }
+    // One oscillator. Extra options: f, f2 (glide to, over `glide` s), type, det (cents), vib [rate Hz, depth Hz].
+    function osc(t0, o) {
+      const t = at(t0), d = o.d || 0.3, s = ac.createOscillator(), g = ac.createGain();
+      s.type = o.type || 'sine';
+      s.frequency.setValueAtTime(o.f, t);
+      if (o.f2) s.frequency.exponentialRampToValueAtTime(o.f2, t + (o.glide || d));
+      if (o.det) s.detune.value = o.det;
+      if (o.vib) {
+        const l = ac.createOscillator(), lg = ac.createGain();
+        l.frequency.value = o.vib[0]; lg.gain.value = o.vib[1];
+        l.connect(lg); lg.connect(s.frequency); l.start(t); l.stop(t + d + 0.1);
+      }
+      envelope(g, t, o);
+      filt(s, t, o).connect(g); out(g, t, o);
+      s.start(t); s.stop(t + d + 0.1);
+    }
+    function noise(t0, o) {
+      o = Object.assign({ a: 0.002, d: 0.2 }, o);
+      const t = at(t0), s = ac.createBufferSource(), g = ac.createGain();
+      s.buffer = nbuf; s.loop = true;
+      envelope(g, t, o);
+      filt(s, t, o).connect(g); out(g, t, o);
+      s.start(t, Math.random() * 0.5); s.stop(t + o.d + 0.05);
+    }
+    // FM: a sine wobbled by another at ratio × f; the wobble dies before the note does, so it starts bright and
+    // mellows. ratio 3.5 ≈ tubular bell, 4 ≈ marimba / vibraphone, 7 ≈ celesta.
+    function fm(t0, f, o) {
+      o = Object.assign({ a: 0.002, d: 1 }, o);
+      const t = at(t0), c = ac.createOscillator(), m = ac.createOscillator(), mg = ac.createGain(), g = ac.createGain();
+      c.frequency.value = f; m.frequency.value = f * (o.ratio || 3.5);
+      const I = f * (o.index || 1.5);
+      mg.gain.setValueAtTime(I, t); mg.gain.exponentialRampToValueAtTime(Math.max(0.5, I * 0.03), t + o.d * 0.5);
+      m.connect(mg); mg.connect(c.frequency);
+      envelope(g, t, o);
+      c.connect(g); out(g, t, o);
+      c.start(t); m.start(t); c.stop(t + o.d + 0.1); m.stop(t + o.d + 0.1);
+    }
+    // Struck brass (a temple ghanti): inharmonic partials, each a slightly detuned pair so it shimmers,
+    // a low hum, and the clapper's tick.
+    const BRASS = [[1, 1, 1], [2.02, 0.5, 0.75], [2.76, 0.42, 0.6], [4.07, 0.3, 0.45], [5.4, 0.2, 0.3], [6.85, 0.12, 0.2]];
+    function brass(t0, f, o) {
+      const v = o.v || 0.1, d = o.d || 3, rev = o.rev == null ? 0.45 : o.rev;
+      BRASS.forEach(([r, amp, len]) => [-1, 1].forEach(sg =>
+        osc(t0, { f: f * r + sg * rnd(0.8, 2.2), v: v * amp / 2, a: 0.002, d: d * len, pan: o.pan, rev })));
+      osc(t0, { f: f * 0.5, v: v * 0.25, a: 0.01, d: d * 0.8, rev: 0.3 });
+      noise(t0, { d: 0.03, v: v * 0.8, bp: Math.min(f * 6, 9000), q: 2, pan: o.pan });
+    }
+    // Plucked / hammered string (Karplus–Strong), rendered once per pitch: santoor.
+    function pluck(t0, f, o) {
+      const key = Math.round(f);
+      let buf = strings[key];
+      if (!buf) {
+        const sr = ac.sampleRate, len = Math.floor(sr * 1.8), N = Math.max(2, Math.round(sr / f));
+        const k = Math.pow(0.001, 1 / (f * 1.6));   // fades to -60 dB in about 1.6 s
+        buf = ac.createBuffer(1, len, sr);
+        const y = buf.getChannelData(0);
+        for (let i = 0; i < N; i++) y[i] = Math.random() * 2 - 1;
+        y[N] = y[0];
+        for (let i = N + 1; i < len; i++) y[i] = k * (0.6 * y[i - N] + 0.4 * y[i - N - 1]);
+        strings[key] = buf;
+      }
+      const t = at(t0), s = ac.createBufferSource(), g = ac.createGain();
+      s.buffer = buf; g.gain.value = o.v || 0.2;
+      s.connect(g); out(g, t, o); s.start(t);
+    }
+    // Hand drum: a sine that drops in pitch (the skin) plus a slap of filtered noise (the hand).
+    function drum(t0, f, f2, o) {
+      osc(t0, { f, f2, glide: o.glide || 0.12, v: o.v || 0.6, a: 0.002, d: o.d || 0.35, pan: o.pan, rev: o.rev || 0.08 });
+      noise(t0, { d: o.sd || 0.05, v: o.slap || 0.15, bp: o.sf || 1500, q: 1.2, pan: o.pan });
+    }
+    const dagga = (t0, v) => drum(t0, 118, 52, { v: (v || 1) * 0.75, d: 0.42, slap: (v || 1) * 0.12, sf: 600, pan: -0.15 });
+    const tilli = (t0, v) => drum(t0, 520, 400, { v: (v || 1) * 0.22, d: 0.12, slap: (v || 1) * 0.22, sf: 3200, pan: 0.25, glide: 0.05 });
+    // One bar of the bhangra chaal (D..hD.h.), 0.7 s, so it can repeat every 0.85 s.
+    function dhol(t0) { dagga(t0); tilli(t0, 0.5); tilli(t0 + 0.3); dagga(t0 + 0.4); tilli(t0 + 0.5, 0.4); tilli(t0 + 0.6); }
+    // Two bars of the chaal and a roll into a big closing beat (about 2.2 s): the dhol has started.
+    function dholGroove(t0) {
+      Array.from('D..hD.h.D..hDhh.').forEach((c, i) => {
+        const tt = t0 + i * 0.1;
+        if (c === 'D') { dagga(tt); tilli(tt, 0.4); } else if (c === 'h') tilli(tt); else if (i % 2 === 0) tilli(tt, 0.3);
+      });
+      [0, 0.06, 0.12, 0.18].forEach((x, i) => tilli(t0 + 1.6 + x, 0.5 + i * 0.15));
+      dagga(t0 + 1.84, 1.2); tilli(t0 + 1.84, 1.2);
+    }
+    // Ghungroo: a shake of tiny bells.
+    function ghungroo(t0, o) {
+      const n = o.n || 16, d = o.d || 0.5, v = o.v || 0.05;
+      for (let i = 0; i < n; i++) {
+        const tt = t0 + d * Math.pow(i / n, 1.6) + rnd(0, 0.02), f = rnd(3800, 6800), p = rnd(-0.5, 0.5);
+        osc(tt, { f, v: v * (1 - i / n * 0.6), a: 0.001, d: rnd(0.06, 0.16), pan: p, rev: 0.25 });
+        osc(tt, { f: f * 1.47, v: v * 0.3, a: 0.001, d: 0.05, pan: p });
+      }
+      noise(t0, { a: 0.01, d: d * 0.6, v: v * 1.2, hp: 6000 });
+    }
+    // Shehnai: a reedy sawtooth with vibrato that slides into each note (meend). notes: [[Hz, start, length], ...]
+    function shehnai(t0, notes, v) {
+      notes.forEach(([f, s, l], i) => {
+        const from = i ? notes[i - 1][0] : f * 0.97;
+        osc(t0 + s, { f: from, f2: f, glide: 0.06, type: 'sawtooth', v: v || 0.05, a: 0.03, hold: Math.max(0.01, l - 0.08),
+          d: l + 0.12, vib: [5.5, f * 0.012], lp: 2600, q: 3, rev: 0.35 });
+      });
+    }
+
+    // Sa Re Ga Pa Dha (C pentatonic), two octaves from C5.
+    const SA = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51, 1567.98, 1760];
+    const santoorRun = (t0, idx, v) => idx.forEach((k, i) => pluck(t0 + i * 0.075, SA[k], { v: v || 0.3, pan: -0.4 + (i / idx.length) * 0.8, rev: 0.35 }));
+    const base = {
+      tap: () => { osc(0, { f: rnd(1500, 1700), f2: 900, v: 0.1, d: 0.05, rev: 0.05 }); noise(0, { d: 0.015, v: 0.05, bp: 3000, q: 2 }); },
+      pop: () => osc(0, { f: rnd(360, 420), f2: 1150, glide: 0.07, v: 0.22, d: 0.13, rev: 0.12 }),
+      chime: () => { fm(0, 1318.51, { ratio: 3.5, index: 1.2, v: 0.12, d: 1.6, pan: -0.25, rev: 0.45 }); fm(0.16, 987.77, { ratio: 3.5, index: 1.2, v: 0.12, d: 2, pan: 0.25, rev: 0.45 }); },
+      ding: () => { fm(0, 1760, { ratio: 2.01, index: 0.8, v: 0.11, d: 0.9, rev: 0.35 }); osc(0, { f: 5280, v: 0.015, d: 0.25 }); },
+      bell: () => brass(0, rnd(600, 660), { v: 0.12, d: 3 }),
+      dhol: () => dhol(0),
+      success: () => { santoorRun(0, [0, 1, 2, 3, 5]); fm(0.42, 2093, { ratio: 7, index: 0.4, v: 0.04, d: 1.2, rev: 0.6 }); },
+      whoosh: () => noise(0, { a: 0.22, d: 0.6, v: 0.28, bp: 300, to: 2800, q: 1.2, pan: -0.6, pan2: 0.6, rev: 0.25 }),
+      splash: () => {
+        noise(0, { d: 0.32, v: 0.32, lp: 2600, to: 300 });
+        for (let i = 0; i < 4; i++) { const f = rnd(700, 1100); osc(rnd(0.02, 0.18), { f, f2: f * 1.8, v: 0.06, d: 0.06 }); }
+      },
+      // dholak bols
+      dha: () => { dagga(0); tilli(0, 0.8); },
+      dhin: () => { dagga(0, 0.8); drum(0, 330, 300, { v: 0.2, d: 0.5, slap: 0.1, sf: 2500, pan: 0.2, glide: 0.3 }); },
+      na: () => drum(0, 720, 660, { v: 0.24, d: 0.28, slap: 0.26, sf: 4200, pan: 0.25, glide: 0.2 }),
     };
-    function unlock() { unlocked = true; ctxA(); }
+    const swipe = () => noise(0, { a: 0.06, d: 0.25, v: 0.2, bp: 900, to: 4500, q: 1.4, pan: -0.3, pan2: 0.3 });
+    const square = (t0, f, v, hold, o) => osc(t0, Object.assign({ f, type: 'square', v, hold, d: hold + 0.06, lp: 5000 }, o));
+    const themes = {
+      metro: {
+        tap: () => square(0, 1250, 0.035, 0.06, { lp: 3000 }),                          // card reader beep
+        chime: () => { square(0, 1000, 0.03, 0.08, { lp: 3000 }); [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => fm(0.18 + i * 0.13, f, { ratio: 4, index: 0.6, v: 0.09, d: 1, rev: 0.35 })); },
+        ding: () => [783.99, 659.25, 523.25].forEach((f, i) => fm(i * 0.22, f, { ratio: 4, index: 0.7, v: 0.11, d: 0.9, rev: 0.3 })),   // doors chime
+        pop: () => { noise(0, { d: 0.02, v: 0.15, hp: 2000 }); fm(0.02, 1046.5, { ratio: 4, index: 0.6, v: 0.08, d: 0.6, rev: 0.3 }); fm(0.17, 1318.51, { ratio: 4, index: 0.6, v: 0.08, d: 0.8, rev: 0.3 }); },
+        announce: () => { fm(0, 659.25, { ratio: 3.5, index: 0.9, v: 0.09, d: 1.2, rev: 0.4 }); fm(0.3, 523.25, { ratio: 3.5, index: 0.9, v: 0.09, d: 1.4, rev: 0.4 }); },
+        whoosh: () => {                                                                    // a train pulling in / out
+          noise(0, { a: 0.6, d: 1.8, v: 0.35, lp: 160, to: 700, q: 0.7 });
+          noise(0.2, { a: 0.5, d: 1.3, v: 0.16, bp: 500, to: 2200, q: 1, pan: -0.8, pan2: 0.8 });
+          [0.35, 0.47, 0.8, 0.92, 1.25, 1.37].forEach(t => noise(t, { d: 0.03, v: 0.08, bp: 1800, q: 2 }));
+        },
+        success: () => [523.25, 659.25, 783.99, 1046.5, 1318.51].forEach((f, i) => fm(i * 0.12, f, { ratio: 4, index: 0.6, v: 0.09, d: 1.4, rev: 0.4 })),
+      },
+      chat: {
+        tap: () => { noise(0, { d: 0.012, v: 0.1, hp: 3500 }); osc(0, { f: rnd(2300, 2700), v: 0.02, d: 0.02 }); },
+        pop: () => { osc(0, { f: 600, f2: 1350, glide: 0.04, v: 0.2, d: 0.09 }); osc(0.035, { f: 1800, v: 0.03, d: 0.05 }); },
+        chime: () => { fm(0, 1046.5, { ratio: 4, index: 0.8, v: 0.11, d: 0.7, rev: 0.25 }); fm(0.11, 1567.98, { ratio: 4, index: 0.8, v: 0.1, d: 0.9, rev: 0.25 }); },
+        whoosh: swipe,
+      },
+      cassette: {
+        tap: () => { osc(0, { f: 170, f2: 80, v: 0.3, d: 0.08 }); noise(0, { d: 0.035, v: 0.22, lp: 1800 }); noise(0.045, { d: 0.012, v: 0.07, hp: 4000 }); },
+        pop: () => { noise(0, { d: 0.02, v: 0.18, hp: 1500 }); osc(0.01, { f: 900, f2: 420, type: 'triangle', v: 0.05, d: 0.18, vib: [32, 60] }); },
+        whoosh: () => { osc(0, { f: 260, f2: 1100, glide: 0.7, type: 'sawtooth', v: 0.035, a: 0.05, d: 0.8, lp: 2200 }); noise(0, { a: 0.1, d: 0.8, v: 0.06, bp: 2500 }); },
+      },
+      tracker: {
+        pop: () => osc(0, { f: 900, f2: 1400, glide: 0.03, v: 0.12, d: 0.07 }),
+        ding: () => { fm(0, 1567.98, { ratio: 2, index: 0.5, v: 0.1, d: 0.6, rev: 0.2 }); fm(0.08, 2093, { ratio: 2, index: 0.5, v: 0.08, d: 0.8, rev: 0.25 }); },
+        success: () => { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => fm(i * 0.09, f, { ratio: 4, index: 0.9, v: 0.12, d: 0.8, rev: 0.3 })); ghungroo(0.36, { n: 10, d: 0.35, v: 0.035 }); },
+        whoosh: swipe,
+      },
+      haldi: {
+        splash: () => { noise(0, { d: 0.16, v: 0.3, lp: 1400, to: 240, q: 3 }); const f = rnd(450, 650); osc(rnd(0.02, 0.06), { f, f2: f * 2.4, glide: 0.04, v: 0.08, d: 0.06 }); },
+        success: () => { base.success(); ghungroo(0.1, { n: 18, d: 0.6, v: 0.045 }); },
+      },
+      diya: {
+        splash: () => {                                    // a matchstick scraped along the box, then the flame catching
+          for (let i = 0; i < 7; i++) noise(i * 0.022 + rnd(0, 0.01), { d: 0.03, v: rnd(0.12, 0.25), bp: rnd(2500, 4500), q: 1.5 });
+          noise(0.16, { a: 0.04, d: 0.6, v: 0.34, lp: 350, to: 1500, q: 0.7, rev: 0.15 });
+          noise(0.16, { a: 0.05, d: 0.9, v: 0.05, bp: 5000, q: 0.5 });
+          for (let i = 0; i < 6; i++) noise(0.3 + rnd(0, 0.9), { d: 0.008, v: rnd(0.03, 0.08), hp: 3000 });
+        },
+        bell: () => { const f = rnd(590, 640); brass(0, f, { v: 0.13, d: 3.4, rev: 0.55 }); brass(0.55, f, { v: 0.08, d: 3, rev: 0.55 }); },   // the temple bell, rung twice
+        chime: () => brass(0, rnd(980, 1100), { v: 0.06, d: 1.8 }),
+      },
+      mehendi: {
+        tap: () => noise(0, { d: 0.05, v: 0.2, bp: rnd(2000, 2800), q: 0.7 }),
+        chime: () => santoorRun(0, [5, 3, 2, 1, 0, 2, 3, 5], 0.26),
+        dhol: () => { dhol(0); ghungroo(0.4, { n: 10, d: 0.3, v: 0.035 }); },
+        success: () => { dholGroove(0); ghungroo(1.84, { n: 18, d: 0.6, v: 0.045 }); santoorRun(1.9, [0, 2, 3, 5, 7], 0.24); },   // found him: the dhol starts up
+        whoosh: () => noise(0, { a: 0.12, d: 0.4, v: 0.14, bp: 1200, to: 3500, q: 0.8, pan: 0.4, pan2: -0.4 }),
+      },
+      stars: {
+        tap: () => fm(0, rnd(2400, 2800), { ratio: 3, index: 0.4, v: 0.07, d: 0.35, rev: 0.5 }),
+        pop: () => osc(0, { f: 480, f2: 900, glide: 0.08, v: 0.14, d: 0.2, rev: 0.45 }),
+        chime: () => [5, 7, 9, 8, 6].forEach((k, i) => fm(i * 0.07, SA[k] * 1.5, { ratio: 7, index: 0.35, v: 0.06, d: 1.2, pan: rnd(-0.6, 0.6), rev: 0.65 })),
+        ding: () => { fm(0, 2093, { ratio: 7, index: 0.3, v: 0.07, d: 1, rev: 0.6 }); fm(0.09, 3136, { ratio: 7, index: 0.3, v: 0.05, d: 1, rev: 0.6 }); },
+        bell: () => { [261.63, 392, 659.25].forEach(f => osc(0, { f, type: 'triangle', v: 0.035, a: 0.5, d: 3, rev: 0.7, det: rnd(-6, 6) })); fm(0, 1046.5, { ratio: 3.5, index: 0.8, v: 0.06, d: 2.5, rev: 0.7 }); },
+        whoosh: () => { noise(0, { a: 0.5, d: 1.4, v: 0.22, bp: 200, to: 1600, q: 1, pan: -0.5, pan2: 0.5, rev: 0.6 }); osc(0, { f: 90, f2: 45, v: 0.12, a: 0.3, d: 1.4 }); },
+        success: () => SA.forEach((f, i) => fm(i * 0.08, f, { ratio: 7, index: 0.35, v: 0.06, d: 1.6, pan: -0.5 + i * 0.1, rev: 0.6 })),
+      },
+      claw: {                                              // arcade machine (the festive reveals keep the shared bell / chime / dhol)
+        tap: () => square(0, 880, 0.07, 0.015),
+        pop: () => osc(0, { f: 440, f2: 1320, glide: 0.06, type: 'square', v: 0.08, d: 0.1, lp: 4000 }),
+        ding: () => { square(0, 987.77, 0.045, 0.06); square(0.07, 1318.51, 0.045, 0.3); },          // coin
+        success: () => {
+          [523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98].forEach((f, i) => square(i * 0.065, f, 0.04, 0.05));
+          [1046.5, 1318.51, 1567.98].forEach(f => square(0.42, f, 0.022, 0.3, { lp: 4000 }));
+          osc(0.42, { f: 261.63, type: 'triangle', v: 0.12, hold: 0.3, d: 0.6 });
+        },
+        whoosh: () => { osc(0, { f: 110, f2: 150, type: 'sawtooth', v: 0.06, a: 0.05, hold: 0.4, d: 0.65, lp: 900, vib: [16, 8] }); noise(0, { a: 0.05, hold: 0.4, d: 0.65, v: 0.05, lp: 500 }); },
+      },
+      escape: {
+        tap: () => { osc(0, { f: rnd(850, 950), f2: 600, type: 'triangle', v: 0.16, d: 0.045 }); noise(0, { d: 0.02, v: 0.08, bp: 1800, q: 3 }); },   // wooden click
+        pop: () => { pluck(0, 783.99, { v: 0.28, rev: 0.25 }); pluck(0.07, 1174.66, { v: 0.24, rev: 0.25 }); },                              // picked something up
+        chime: () => [3, 5, 7].forEach((k, i) => fm(i * 0.08, SA[k], { ratio: 7, index: 0.4, v: 0.07, d: 1.1, rev: 0.5 })),
+        success: () => {                                   // puzzle solved: a shehnai phrase (Ga Pa Dha Pa Ga Re Sa)
+          shehnai(0, [[550, 0, 0.18], [660, 0.18, 0.18], [733.3, 0.36, 0.3], [660, 0.66, 0.2], [550, 0.86, 0.2], [495, 1.06, 0.2], [440, 1.26, 0.6]], 0.08);
+          ghungroo(1.26, { n: 10, d: 0.35, v: 0.03 });
+        },
+        whoosh: () => { noise(0, { a: 0.2, d: 0.8, v: 0.3, lp: 250, to: 900 }); osc(0, { f: 60, f2: 45, v: 0.15, a: 0.1, d: 0.8 }); },     // a heavy door
+      },
+      patrika: { tap: () => fm(0, 1318.51, { ratio: 3.5, index: 1, v: 0.06, d: 0.8, rev: 0.4 }) },
+    };
+
+    /* -- speech: parts [{ text, lang: 'hi' | 'en' }] are spoken in order; a part with no voice for its language on
+          this device is skipped. A new call cuts off the last one. -- */
+    const speech = root.speechSynthesis;
+    let voices = [], sayId = 0;
+    function loadVoices() { try { voices = speech.getVoices() || []; } catch (e) { voices = []; } }
+    if (speech) { loadVoices(); try { speech.addEventListener('voiceschanged', loadVoices); } catch (e) { speech.onvoiceschanged = loadVoices; } }
+    function voiceFor(lang) {
+      if (!voices.length) loadVoices();
+      const want = lang === 'hi' ? [/^hi[-_]IN/i, /^hi/i] : [/^en[-_]IN/i, /^en[-_]GB/i, /^en/i];
+      const female = /female|heera|kalpana|swara|lekha|veena|neerja|google/i;
+      for (const re of want) {
+        const m = voices.filter(v => re.test(v.lang));
+        if (m.length) return m.find(v => female.test(v.name)) || m[0];
+      }
+      return null;
+    }
+    function hush() { sayId++; try { if (speech) speech.cancel(); } catch (e) { /* ignore */ } }
+
+    function unlock() {
+      unlocked = true; ctxA();
+      // iOS only lets a page speak after it has spoken once inside a tap.
+      if (speech && theme === 'metro') try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speech.speak(u); } catch (e) { /* ignore */ }
+    }
     ['pointerdown', 'keydown', 'touchstart'].forEach(t => root.addEventListener(t, unlock, { once: true, capture: true }));
     return {
       play(name) {
-        if (muted || !unlocked || Invite.isStatic || !presets[name]) return;
-        try { if (ctxA()) presets[name](); } catch (e) { /* audio unavailable */ }
+        if (muted || !unlocked || Invite.isStatic) return;
+        const p = (themes[theme] && themes[theme][name]) || base[name];
+        if (!p) return;
+        try { if (ctxA()) p(); } catch (e) { /* audio unavailable */ }
       },
+      say(parts, delayMs) {
+        if (!speech || muted || !unlocked || Invite.isStatic) return;
+        hush();
+        const id = sayId;
+        setTimeout(() => {
+          if (id !== sayId || muted) return;
+          try {
+            parts.forEach(p => {
+              const vo = p.text && voiceFor(p.lang);
+              if (!vo) return;
+              const u = new SpeechSynthesisUtterance(p.text);
+              u.voice = vo; u.lang = vo.lang; u.rate = 0.95; u.pitch = 1.05;
+              speech.speak(u);
+            });
+          } catch (e) { /* speech unavailable */ }
+        }, delayMs || 60);
+      },
+      hush,
+      setTheme(id) { theme = id || ''; },
+      // The shared audio graph, for a variant that makes its own music (cassette): { ac, input, hall } or null.
+      graph() { return ctxA() ? { ac, input: bus, hall } : null; },
       get muted() { return muted; },
-      setMuted(v) { muted = !!v; try { localStorage.setItem('invite-muted', muted ? '1' : '0'); } catch (e) { /* storage blocked */ } },
+      setMuted(v) {
+        muted = !!v;
+        if (muted) hush();
+        try { localStorage.setItem('invite-muted', muted ? '1' : '0'); } catch (e) { /* storage blocked */ }
+      },
     };
   })();
 
@@ -479,6 +769,7 @@
       if (id === 'patrika') opts = Object.assign({}, opts, { lang: 'hi' });   // the plain Hindi card is always Hindi
       const ctx = Invite.buildCtx(opts);
       Invite.isStatic = ctx.isStatic;
+      sound.setTheme(id);
       document.documentElement.classList.add('v-' + id);
       if (ctx.hi) {
         document.documentElement.lang = 'hi';
