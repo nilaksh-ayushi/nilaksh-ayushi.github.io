@@ -219,8 +219,7 @@
       later(() => { eta.textContent = t('ARRIVING IN 30 SEC', '30 सेकंड में आ रही है'); }, T(2100));
       later(() => {
         eta.textContent = t('ARRIVING NOW', 'ट्रेन आ रही है'); eta.classList.add('is-blink'); sec.classList.add('is-arriving'); ctx.sound.play('whoosh');
-        ctx.sound.say([{ text: 'शादी एक्सप्रेस प्लेटफ़ॉर्म पर आ रही है। कृपया दरवाज़ों से हटकर खड़े हों। आपके लिए एक सीट आरक्षित है।', lang: 'hi' },
-          { text: t('The Shaadi Express is arriving on the platform. Please stand clear of the doors. A seat is reserved for you.', ''), lang: 'en' }], 300);
+        ctx.sound.say([{ text: 'शादी एक्सप्रेस प्लेटफ़ॉर्म पर आ रही है।', lang: 'hi' }, { text: t('The Shaadi Express is arriving on the platform.', ''), lang: 'en' }], 300);
       }, T(2800));
       later(() => { sec.classList.add('is-doors'); ctx.sound.play('ding'); }, T(4300));
       later(() => {
@@ -260,8 +259,8 @@
       if (rideStarted) return; rideStarted = true;
       clearAll();
       show('ride');
-      annHi.textContent = 'शादी एक्सप्रेस में आपका स्वागत है।';
-      annEn.textContent = t('Welcome aboard the Shaadi Express.', '');
+      annHi.textContent = 'शादी एक्सप्रेस में आपका स्वागत है। कृपया दरवाज़ों से हटकर खड़े हों। आपके लिए सीट आरक्षित है।';
+      annEn.textContent = t('Welcome aboard the Shaadi Express. Please stand clear of the doors. Seats are reserved for you.', '');
       annDoors.textContent = '';
       announce(200);
       signwrap.innerHTML = welcomeHTML();
