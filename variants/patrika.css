@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi&family=Mukta:wght@500;600;700&display=swap');
+
+/* Patrika — Hindi card: ivory paper, maroon ink, marigold toran. Large type for easy reading.
+   Everything scoped to html.v-patrika / .pk-*. */
+html.v-patrika {
+  --pk-paper: #fff8ea;
+  --pk-ink: #3b1410;
+  --pk-maroon: #8e1b26;
+  --pk-saffron: #d86a10;
+  --pk-gold: #b8862b;
+  --pk-muted: #6d4a3c;
+  --pk-display: 'Tiro Devanagari Hindi', 'Noto Serif Devanagari', serif;
+  --pk-body: 'Mukta', 'Nirmala UI', 'Mangal', sans-serif;
+  --btn-bg: var(--pk-maroon);
+  --btn-ink: #fff;
+  --sum-accent: var(--pk-maroon);
+  background: #5c1018;
+}
+html.v-patrika body {
+  background:
+    radial-gradient(circle at 50% 0, rgba(255, 170, 60, .22), transparent 60%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, .025) 0 2px, transparent 2px 14px),
+    #5c1018;
+  color: var(--pk-ink);
+}
+html.v-patrika .inv-sound { background: rgba(60, 10, 14, .55); }
+
+.pk-root { position: relative; padding: 0 14px 28px; font: 500 18px/1.55 var(--pk-body); }
+.pk-toran { display: block; width: calc(100% + 28px); height: 66px; margin: 0 -14px -30px; position: relative; z-index: 2; }
+.pk-rope { stroke: #2f6b2a; stroke-width: 2; fill: none; }
+.pk-mg1 { fill: #f39c12; } .pk-mg2 { fill: #c0392b; } .pk-mg3 { fill: #f7c331; }
+.pk-leaf { fill: #3f8a36; }
+
+.pk-card {
+  position: relative; background: var(--pk-paper); color: var(--pk-ink);
+  border-radius: 6px; padding: 52px 22px 30px; text-align: center;
+  box-shadow: 0 0 0 6px #fff8ea, 0 0 0 8px var(--pk-gold), 0 18px 40px -12px rgba(0, 0, 0, .55);
+  outline: 2px solid var(--pk-maroon); outline-offset: -12px;
+}
+.pk-corner { position: absolute; width: 34px; height: 34px; border: 3px solid var(--pk-saffron); }
+.pk-corner::after { content: ''; position: absolute; width: 9px; height: 9px; background: var(--pk-maroon); transform: rotate(45deg); }
+.pk-tl { top: 20px; left: 20px; border-right: 0; border-bottom: 0; border-top-left-radius: 14px; }
+.pk-tr { top: 20px; right: 20px; border-left: 0; border-bottom: 0; border-top-right-radius: 14px; }
+.pk-bl { bottom: 20px; left: 20px; border-right: 0; border-top: 0; border-bottom-left-radius: 14px; }
+.pk-br { bottom: 20px; right: 20px; border-left: 0; border-top: 0; border-bottom-right-radius: 14px; }
+.pk-tl::after, .pk-tr::after { top: 6px; } .pk-bl::after, .pk-br::after { bottom: 6px; }
+.pk-tl::after, .pk-bl::after { left: 6px; } .pk-tr::after, .pk-br::after { right: 6px; }
+
+.pk-card p, .pk-card h1, .pk-card h2, .pk-card h3 { margin: 0; }
+.pk-card .inv-ganesh { color: var(--pk-maroon); }
+.pk-card .inv-ganesh p { font: 400 22px/1.4 var(--pk-display); color: var(--pk-saffron); }
+.pk-shloka { margin-top: 14px !important; font: 400 19px/1.75 var(--pk-display); color: var(--pk-maroon); }
+.pk-art { color: var(--pk-maroon); margin-top: 10px; }
+
+.pk-rule { display: flex; align-items: center; gap: 12px; margin: 22px 8px 18px; color: var(--pk-saffron); font-size: 20px; }
+.pk-rule::before, .pk-rule::after { content: ''; flex: 1; height: 2px; background: linear-gradient(90deg, transparent, var(--pk-gold)); }
+.pk-rule::after { background: linear-gradient(270deg, transparent, var(--pk-gold)); }
+
+.pk-kicker { font: 700 17px/1.4 var(--pk-body); color: var(--pk-saffron); letter-spacing: .04em; }
+.pk-greet { margin-top: 4px !important; font: 600 22px/1.4 var(--pk-body); color: var(--pk-ink); }
+.pk-title { margin-top: 10px !important; font: 400 46px/1.25 var(--pk-display); color: var(--pk-maroon); }
+
+.pk-invite { margin-top: 14px; display: grid; gap: 8px; }
+.pk-invite p { text-wrap: balance; }
+.pk-bless { font: 600 18px/1.6 var(--pk-body); color: var(--pk-maroon); }
+.pk-bless span, .pk-lead { font-weight: 500; color: var(--pk-muted); }
+.pk-hosts { margin-top: 6px !important; font: 700 21px/1.45 var(--pk-body); color: var(--pk-maroon); }
+.pk-couple { display: flex; flex-direction: column; align-items: center; margin: 4px 0 !important; font: 400 40px/1.3 var(--pk-display); color: var(--pk-maroon); }
+.pk-couple em { font: 500 20px/1.6 var(--pk-body); font-style: normal; color: var(--pk-saffron); }
+.pk-bride { font: 600 18px/1.5 var(--pk-body); color: var(--pk-muted); }
+.pk-line { margin-top: 6px !important; font: 500 19px/1.65 var(--pk-body); color: var(--pk-ink); text-wrap: balance; }
+
+.pk-day { margin-top: 14px; border-top: 2px dashed rgba(184, 134, 43, .45); padding-top: 14px; }
+.pk-date { display: inline-block; padding: 4px 16px; border-radius: 999px; background: var(--pk-maroon); color: #fff; font: 700 18px/1.5 var(--pk-body); }
+.pk-ev { margin: 14px 0 4px; display: grid; gap: 2px; justify-items: center; }
+.pk-ev + .pk-ev { border-top: 1px solid rgba(142, 27, 38, .12); padding-top: 14px; }
+.pk-ev-name { font: 400 28px/1.35 var(--pk-display); color: var(--pk-maroon); }
+.pk-ev-time { font: 700 20px/1.5 var(--pk-body); color: var(--pk-ink); }
+.pk-ev-note { font: 600 17px/1.5 var(--pk-body); color: var(--pk-saffron); }
+.pk-ev-place { font: 500 17.5px/1.5 var(--pk-body); color: var(--pk-muted); max-width: 32ch; text-wrap: balance; }
+.pk-ev .inv-dir { margin-top: 8px; font: 600 16px/1 var(--pk-body); padding: .75em 1.2em; }
+.pk-actions { margin-top: 20px; }
+.pk-actions .inv-btn { font: 600 17px/1 var(--pk-body); padding: .8em 1.4em; }
+
+.pk-foot { margin-top: 24px; border-top: 2px dashed rgba(184, 134, 43, .45); padding-top: 18px; display: grid; gap: 4px; }
+.pk-foot-k { font: 700 17px/1.4 var(--pk-body); color: var(--pk-saffron); }
+.pk-foot-hosts { font: 700 20px/1.5 var(--pk-body); color: var(--pk-maroon); }
+.pk-foot-addr { font: 500 16.5px/1.5 var(--pk-body); color: var(--pk-muted); max-width: 30ch; margin: 0 auto !important; text-wrap: balance; }
+.pk-phones { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 10px !important; }
+.pk-phone { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; border: 2px solid var(--pk-maroon); border-radius: 999px; color: var(--pk-maroon); text-decoration: none; font: 700 18px/1 var(--pk-body); white-space: nowrap; }
+.pk-end { margin-top: 14px !important; font: 400 22px/1.4 var(--pk-display); color: var(--pk-saffron); }
+
+/* Fade-in (live page only; the image card and reduced motion show everything at once). */
+.pk-root:not(.is-still) .pk-in { opacity: 0; transform: translateY(14px); transition: opacity .7s ease, transform .7s ease; }
+.pk-root:not(.is-still) .pk-in.is-on { opacity: 1; transform: none; }
+
+@media (max-width: 380px) {
+  .pk-card { padding: 48px 16px 28px; }
+  .pk-title { font-size: 40px; }
+  .pk-couple { font-size: 34px; }
+  .pk-ev-name { font-size: 25px; }
+}

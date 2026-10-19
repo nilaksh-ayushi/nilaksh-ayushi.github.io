@@ -30,6 +30,7 @@
                       { heading: false } to omit the couple header, { footer: false } to omit the host footer.
      ctx.calendarButtonHTML(label?) one button that downloads an .ics with all the guest's events
      ctx.directionsHTML(ev, label?) an <a> to the venue's map
+     Invite.hindi.date(iso, short?) / .time(ev) / .place(ev)  Hindi date, time and place (data.js hi fields)
      Invite.art.ganesh({size, className, stroke}) / Invite.art.hanuman(...)  minimal line-art doodle SVG
                       (stroke = currentColor, so it takes the text colour). Invite.ganeshBlockHTML(opts) =
                       '॥ श्री गणेशाय नमः ॥' with the Ganesh doodle under it (class inv-ganesh).
@@ -279,6 +280,31 @@
     return `<div class="inv-ganesh"><p lang="hi">${esc(D.TEXT.ganeshShort)}</p>${art.ganesh(opts)}</div>`;
   }
 
+  /* ---------- Hindi wording (the patrika card and the studio's Hindi message) ---------- */
+  const DOW_HI = ['रविवार', 'सोमवार', 'मंगलवार', 'बुधवार', 'गुरुवार', 'शुक्रवार', 'शनिवार'];
+  const MON_HI = ['जनवरी', 'फ़रवरी', 'मार्च', 'अप्रैल', 'मई', 'जून', 'जुलाई', 'अगस्त', 'सितंबर', 'अक्टूबर', 'नवंबर', 'दिसंबर'];
+  const hindi = {
+    // 'शनिवार, 28 नवंबर 2026' (short: without the year)
+    date(iso, short) {
+      const [y, m, d] = iso.split('-').map(Number);
+      return `${DOW_HI[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]}, ${d} ${MON_HI[m - 1]}${short ? '' : ' ' + y}`;
+    },
+    // 'सायं 7:00 बजे'; a phrase time (Vidaai) uses timeHi
+    time(ev) {
+      if (!ev.start) return ev.timeHi || ev.time;
+      const [h, m] = ev.start.split(':').map(Number);
+      const part = h < 12 ? 'प्रातः' : h < 16 ? 'दोपहर' : h < 20 ? 'सायं' : 'रात्रि';
+      return `${part} ${(h % 12) || 12}:${String(m).padStart(2, '0')} बजे`;
+    },
+    // Hindi placeFull for a decorated event
+    place(ev) {
+      const v = ev.venueInfo.hi;
+      if (!v) return ev.placeFull;
+      if (!ev.spot) return `${v.name}, ${v.area}`;
+      return `${ev.spotHi || ev.spot}, ${v.short}, ${v.area.split(',').pop().trim()}`;
+    },
+  };
+
   /* ---------- markup helpers ---------- */
   function directionsHTML(ev, label) {
     return `<a class="inv-btn inv-dir" href="${esc(ev.venueInfo.map)}" target="_blank" rel="noopener">${esc(label || 'Directions')}</a>`;
@@ -331,7 +357,7 @@
   /* ---------- public API ---------- */
   const registry = {};
   const Invite = {
-    data: D, esc, decorate, groupByDay, occasionFor, buildIcs, sound, art, ganeshBlockHTML,
+    data: D, esc, decorate, groupByDay, occasionFor, buildIcs, sound, art, ganeshBlockHTML, hindi,
     isStatic: false,
 
     register(id, impl) { registry[id] = impl; },
