@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Invite Studio</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Mukta:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --bg: #F6F1F0; --surface: #FFFFFF; --ink: #2A1F1F; --muted: #6E6060; --line: #E5DADA;
+    --accent: #8E1B26; --accent-ink: #FFFFFF; --soft: #F3E6E6; --focus: #C2410C;
+    --f-ui: 'Mukta', 'Segoe UI', system-ui, sans-serif;
+    --f-head: 'Marcellus', Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161112; --surface: #211A1B; --ink: #F1E8E7; --muted: #B4A6A6; --line: #3A2F30;
+      --accent: #E58C95; --accent-ink: #2A0A0E; --soft: #2C2122; --focus: #FDBA74;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161112; --surface: #211A1B; --ink: #F1E8E7; --muted: #B4A6A6; --line: #3A2F30;
+    --accent: #E58C95; --accent-ink: #2A0A0E; --soft: #2C2122; --focus: #FDBA74;
+    color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--f-ui); }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 28px 16px 64px; }
+
+  .top { display: grid; gap: 4px; margin-bottom: 24px; }
+  .eyebrow { font-size: .74rem; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  h1 { font-family: var(--f-head); font-weight: 400; font-size: clamp(1.8rem, 4vw, 2.5rem); margin: 0; line-height: 1.15; }
+  .lede { margin: 0; color: var(--muted); max-width: 64ch; }
+
+  .layout { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 28px; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+  .panel { display: grid; gap: 22px; padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+  fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; min-width: 0; }
+  legend, .field-label { font-family: var(--f-head); font-size: 1.05rem; padding: 0; margin-bottom: 6px; }
+  .hint { font-size: .82rem; color: var(--muted); margin: 0; }
+
+  .opt { position: relative; display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+  .opt input { position: absolute; opacity: 0; pointer-events: none; }
+  .opt:has(input:checked) { border-color: var(--accent); background: var(--soft); }
+  .opt:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .num { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line); font-weight: 600; font-size: .85rem; }
+  .opt:has(input:checked) .num { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .opt-t { font-weight: 600; line-height: 1.3; }
+  .opt-s { font-size: .8rem; color: var(--muted); line-height: 1.4; }
+
+  select, input[type="text"], input[type="url"], textarea {
+    width: 100%; font: inherit; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px;
+  }
+  textarea { min-height: 220px; resize: vertical; font-size: .86rem; line-height: 1.5; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn { font: inherit; font-weight: 600; font-size: .88rem; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
+  .btn.ghost { background: transparent; color: var(--accent); }
+  .status { font-size: .82rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+
+  .stage { display: grid; gap: 28px; min-width: 0; }
+  .stage-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .stage-head h2 { font-family: var(--f-head); font-weight: 400; font-size: 1.3rem; margin: 0; }
+  .stage-head span { color: var(--muted); font-size: .86rem; }
+  .phone { width: min(390px, 100%); margin: 0 auto; border: 10px solid #1d1718; border-radius: 36px; overflow: hidden; background: #000; box-shadow: 0 20px 50px -20px rgba(0,0,0,.45); }
+  .phone iframe { display: block; width: 100%; height: 760px; border: 0; background: #fff; }
+
+  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 600px; font-size: .86rem; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: center; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { font-weight: 600; font-size: .78rem; color: var(--muted); vertical-align: bottom; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.on::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+  td small, th small { color: var(--muted); display: block; font-size: .76rem; font-weight: 400; }
+  col.sel { background: var(--soft); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">Invite studio · 28 Nov – 4 Dec 2026</span>
+    <h1>Nilaksh &amp; Ayushi</h1>
+    <p class="lede">Pick the guest’s group, type their name, then copy their personal link or the ready-made WhatsApp message. Each group sees only its own functions, in its own fun e-card.</p>
+  </header>
+
+  <div class="layout">
+    <form class="panel" id="controls" autocomplete="off">
+      <fieldset id="groups"><legend>1 · Guest group</legend></fieldset>
+      <div>
+        <label class="field-label" for="to">2 · Guest name <span class="hint">(optional)</span></label>
+        <input type="text" id="to" placeholder="e.g. Sharma Ji &amp; Family" maxlength="60">
+      </div>
+      <div>
+        <label class="field-label" for="variant">3 · E-card</label>
+        <select id="variant"></select>
+        <p class="hint" style="margin-top:6px">Each group has its own e-card. Change this only to send a different one.</p>
+      </div>
+      <div style="display:grid;gap:8px">
+        <span class="field-label">4 · Share</span>
+        <label class="hint" for="base">Address of the hosted invite.html</label>
+        <input type="url" id="base" spellcheck="false">
+        <label class="hint" for="link" style="margin-top:6px">Guest link</label>
+        <input type="text" id="link" readonly>
+        <div class="row">
+          <button type="button" class="btn" id="copyLink">Copy link</button>
+          <button type="button" class="btn ghost" id="copyMsg">Copy WhatsApp message</button>
+        </div>
+        <textarea id="msg" aria-label="WhatsApp message"></textarea>
+        <div class="row">
+          <a class="btn ghost" id="wa" target="_blank" rel="noopener">Open in WhatsApp</a>
+          <a class="btn ghost" id="open" target="_blank" rel="noopener">Open e-card</a>
+          <a class="btn ghost" id="png" target="_blank" rel="noopener">Image card</a>
+        </div>
+        <p class="status" id="status" role="status"></p>
+      </div>
+    </form>
+
+    <div class="stage">
+      <section>
+        <div class="stage-head"><h2 id="pvTitle">Preview</h2><span id="pvSub"></span></div>
+        <div class="phone"><iframe id="preview" title="E-card preview"></iframe></div>
+      </section>
+      <section>
+        <div class="stage-head"><h2>Who is invited to what</h2><span>Groups from task.md</span></div>
+        <div class="table-scroll"><table id="matrix"></table></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div id="gate" style="position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:16px;background:var(--bg)">
+  <form id="gateForm" class="panel" style="width:min(360px,100%)">
+    <span class="eyebrow">Invite studio</span>
+    <label class="field-label" for="gatePw">Password</label>
+    <input type="password" id="gatePw" autocomplete="current-password" required>
+    <label class="hint"><input type="checkbox" id="gateKeep"> Remember on this device</label>
+    <button class="btn" type="submit">Open studio</button>
+    <p class="status" id="gateMsg" role="status"></p>
+  </form>
+</div>
+<script>
+/* The studio's data (with every group's link code) is AES-GCM encrypted with a key derived from the password
+   (PBKDF2-SHA256) by scripts/build_site.py. Nothing readable is published. */
+(function () {
+  'use strict';
+  const L = {"salt": "OIAQPHS5qb44Bgko96bcPg==", "rounds": 600000, "iv": "j+jzaF7UyFFFch3T", "ct": "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"};
+  const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const store = {
+    get: () => { try { return localStorage.getItem('studio.pw'); } catch (e) { return null; } },
+    set: v => { try { v ? localStorage.setItem('studio.pw', v) : localStorage.removeItem('studio.pw'); } catch (e) { /* blocked */ } },
+  };
+  const $ = id => document.getElementById(id);
+  async function open(pw) {
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt: b64(L.salt), iterations: L.rounds },
+      base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(L.iv) }, key, b64(L.ct));
+    return JSON.parse(new TextDecoder().decode(plain));
+  }
+  async function start(pw, keep) {
+    $('gateMsg').textContent = 'Opening…';
+    let data;
+    try { data = await open(pw.trim()); } catch (e) { store.set(null); $('gateMsg').textContent = 'Wrong password.'; return; }
+    if (keep) store.set(pw.trim());
+    window.INVITE = data;
+    const s = document.createElement('script');
+    s.src = '../core.js';
+    s.onload = () => {
+      const main = document.createElement('script');
+      main.textContent = $('studio-main').textContent;
+      document.body.appendChild(main);
+      $('gate').remove();
+    };
+    document.body.appendChild(s);
+  }
+  $('gateForm').addEventListener('submit', e => { e.preventDefault(); start($('gatePw').value, $('gateKeep').checked); });
+  const saved = store.get();
+  if (saved) start(saved, true); else $('gatePw').focus();
+})();
+</script>
+<script type="text/plain" id="studio-main">
+(function () {
+  'use strict';
+  const I = window.Invite, D = I.data;
+  const $ = id => document.getElementById(id);
+  const esc = I.esc;
+  const store = {
+    get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* storage blocked */ } },
+  };
+  const localInvite = new URL('invite.html', location.href).href.split('?')[0];
+  const HOSTED = 'https://nilaksh-ayushi.github.io/invite.html';
+  // Online copy (private claude.ai artifact) ships without invite.html and the variants: preview the live site instead.
+  const ONLINE = location.protocol !== 'file:' && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  const savedBase = store.get('studio2.base');
+  const S = {
+    code: store.get('studio2.code') || D.GROUPS.find(g => g.n === D.DEFAULT_GROUP).code,
+    variant: '',
+    to: '',
+    // The site moved off Netlify; drop a remembered netlify.app address.
+    base: savedBase && !/netlify\.app/i.test(savedBase) ? savedBase : HOSTED,
+  };
+  if (!D.GROUPS.some(g => g.code === S.code)) S.code = D.GROUPS[0].code;
+  const group = () => D.GROUPS.find(g => g.code === S.code);
+  const vname = id => (D.VARIANTS.find(v => v.id === id) || {}).name || id;
+  const shortName = e => e.name.split(/,| with /)[0].replace(' Ceremony', '');
+
+  $('groups').insertAdjacentHTML('beforeend', D.GROUPS.map(g => {
+    const evs = g.events.map(n => shortName(D.EVENTS.find(e => e.n === n)));
+    return `<label class="opt"><input type="radio" name="group" value="${g.code}"><span class="num">${g.n}</span>
+      <span><span class="opt-t">${esc(g.label)}</span><br><span class="opt-s">${esc(evs.join(' · '))}<br>E-card: ${esc(vname(g.variant))}</span></span></label>`;
+  }).join(''));
+
+  (function matrix() {
+    let h = '<colgroup><col>' + D.GROUPS.map(g => `<col data-code="${g.code}">`).join('') + '</colgroup>';
+    h += '<thead><tr><th>Function</th>' + D.GROUPS.map(g => `<th>${g.n}<small>${esc(vname(g.variant))}</small></th>`).join('') + '</tr></thead><tbody>';
+    D.EVENTS.forEach(e => {
+      const d = I.decorate(e);
+      h += `<tr><td>${esc(e.name)}<small>${esc(d.dateShort)} · ${esc(e.time)}</small></td>` +
+        D.GROUPS.map(g => { const on = g.events.includes(e.n); return `<td class="${on ? 'on' : ''}" aria-label="${on ? 'invited' : 'not invited'}"></td>`; }).join('') + '</tr>';
+    });
+    $('matrix').innerHTML = h + '</tbody>';
+  })();
+
+  function query(base, extra) {
+    const g = group(), q = new URLSearchParams({ i: g.code });
+    if (S.variant && S.variant !== g.variant) q.set('t', S.variant);
+    if (S.to.trim()) q.set('to', S.to.trim());
+    Object.entries(extra || {}).forEach(([k, v]) => q.set(k, v));
+    return base + '?' + q.toString().replace(/\+/g, '%20');
+  }
+  function guestLink() {
+    if (!/^https?:\/\//.test(S.base)) return '';
+    // Each variant has its own page (built by scripts/build_site.py) carrying its own WhatsApp preview image.
+    const g = group(), q = new URLSearchParams({ i: g.code });
+    if (S.to.trim()) q.set('to', S.to.trim());
+    return S.base.split('?')[0].replace(/[^/]*$/, '') + (S.variant || g.variant) + '?' + q.toString().replace(/\+/g, '%20');
+  }
+
+  function message(link) {
+    const g = group(), ctx = I.buildCtx({ code: g.code, guest: S.to.trim() });
+    const P = D.PEOPLE, occ = ctx.occasion;
+    const lines = ctx.events.map(e => `• ${e.dateShort}, ${e.time} · ${shortName(e)}`);
+    const what = {
+      wedding: 'the wedding celebrations', engagement: 'the Sagai & Sangeet', haldi: 'the Haldi & Bhaat',
+      mehandi: 'the Mehandi', sunderkand: 'the Shri Sunderkand Path',
+    }[occ.key];
+    return [
+      occ.key === 'sunderkand' ? '🙏 Jai Shri Ram!' : '🙏 Jai Shri Ganesh!',
+      '',
+      `${ctx.greeting},`,
+      '',
+      `With joy, the ${P.family} invites you to ${what} of ${P.groom} & ${P.bride}.`,
+      '',
+      ...lines,
+      '',
+      link ? `Tap to open your invite 👇\n${link}` : '(Add the hosted invite address in the studio to get the link.)',
+      '',
+      `With love,\n${P.hosts}`,
+    ].join('\n');
+  }
+
+  let reloadTimer = 0;
+  function update(reloadNow) {
+    const g = group();
+    document.querySelector(`input[name="group"][value="${g.code}"]`).checked = true;
+    $('variant').value = S.variant || g.variant;
+    $('pvTitle').textContent = `Group ${g.n} · ${vname(S.variant || g.variant)}`;
+    $('pvSub').textContent = S.to.trim() ? 'For ' + S.to.trim() : 'No guest name';
+    document.querySelectorAll('#matrix col[data-code]').forEach(c => { c.className = c.dataset.code === g.code ? 'sel' : ''; });
+
+    const link = guestLink();
+    $('link').value = link || 'Enter the hosted address above, e.g. ' + HOSTED;
+    const msg = message(link);
+    $('msg').value = msg;
+    // api.whatsapp.com, not wa.me: the wa.me redirect turns emoji into U+FFFD boxes in WhatsApp Desktop.
+    $('wa').href = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(msg);
+    const cardUrl = ONLINE ? (link || 'about:blank') : query(localInvite);
+    $('open').href = cardUrl;
+    $('png').href = `cards/group-${g.n}-${g.slug}.png`;
+    $('png').hidden = ONLINE;
+
+    clearTimeout(reloadTimer);
+    reloadTimer = setTimeout(() => { $('preview').src = cardUrl; }, reloadNow ? 0 : 500);
+    store.set('studio2.code', g.code);
+  }
+
+  function copy(text, what) {
+    const done = () => { $('status').textContent = what + ' copied.'; };
+    const fail = () => { $('status').textContent = 'Copy was blocked here. The text is selected, so press Ctrl+C (or long-press and Copy).'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fail);
+    else fail();
+  }
+
+  $('variant').innerHTML = D.VARIANTS.map(v => `<option value="${v.id}">${esc(v.name)}</option>`).join('');
+  $('controls').addEventListener('submit', e => e.preventDefault());
+  $('controls').addEventListener('change', e => {
+    if (e.target.name === 'group') { S.code = e.target.value; S.variant = ''; update(true); }
+    if (e.target.id === 'variant') { S.variant = e.target.value === group().variant ? '' : e.target.value; update(true); }
+  });
+  $('to').addEventListener('input', e => { S.to = e.target.value; update(false); });
+  $('base').value = S.base;
+  $('base').addEventListener('input', e => { S.base = e.target.value.trim(); store.set('studio2.base', S.base); update(false); });
+  $('copyLink').addEventListener('click', () => { $('link').select(); copy($('link').value, 'Link'); });
+  $('copyMsg').addEventListener('click', () => { $('msg').select(); copy($('msg').value, 'Message'); });
+
+  update(true);
+})();
+</script>
+</body>
+</html>
