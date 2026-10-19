@@ -1,0 +1,276 @@
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Martel:wght@700;800&family=Mukta:wght@400;500;600;700&family=Yatra+One&display=swap');
+
+/* Haldi Splash — turmeric yellow, marigold orange, mango-leaf green. */
+html.v-haldi {
+  --h-ink: #3b1f05;
+  --h-muted: #6b4518;
+  --h-deep: #9a3a00;
+  --h-turmeric: #f6b40e;
+  --h-marigold: #f2780c;
+  --h-leaf: #3f7d20;
+  --sum-bg: #fffdf3;
+  --sum-ink: #5a2a06;
+  --sum-name: #7a2c00;
+  --sum-muted: #6b4518;
+  --sum-accent: #a84300;
+  --sum-rule: rgba(242, 120, 12, .28);
+  --sum-radius: 22px;
+  --sum-font-display: 'Yatra One', 'Kalam', cursive;
+  --sum-font-body: 'Mukta', system-ui, sans-serif;
+  --btn-bg: #3f7d20;
+  --btn-ink: #fff;
+  background: #fff3c9;
+}
+html.v-haldi body {
+  background-color: #fff3c9;
+  background-image: radial-gradient(130% 50% at 50% 0%, #fffbe8 0%, rgba(255, 243, 201, 0) 70%),
+    radial-gradient(90% 40% at 100% 100%, #ffe7a0 0%, rgba(255, 231, 160, 0) 70%);
+  color: var(--h-ink);
+  font-family: 'Mukta', system-ui, sans-serif;
+}
+html.v-haldi [hidden] { display: none !important; }
+
+.haldi-stage {
+  position: relative; overflow: hidden;
+  padding: env(safe-area-inset-top) max(16px, env(safe-area-inset-right)) calc(104px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+.haldi-static { padding-bottom: 28px; }
+
+.haldi-toran { display: block; width: calc(100% + 32px); height: 66px; margin: 0 -16px; position: relative; z-index: 2; }
+
+.haldi-roses { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.haldi-rose { position: absolute; display: block; opacity: .85; }
+.haldi-rose svg { display: block; width: 100%; height: auto; }
+
+/* ---------- header ---------- */
+.haldi-head { position: relative; z-index: 1; margin-top: 6px; }
+.haldi-head-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; }
+.haldi-kicker {
+  margin: 0; font: 600 12px/1.2 'Mukta', sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--h-deep);
+}
+.haldi-skip {
+  min-height: 44px; padding: 0 16px; border-radius: 999px; cursor: pointer;
+  border: 2px solid rgba(154, 58, 0, .35); background: rgba(255, 255, 255, .75); color: var(--h-deep);
+  font: 600 14px/1 'Mukta', sans-serif; white-space: nowrap;
+}
+.haldi-skip:focus-visible, .haldi-all:focus-visible, .haldi-cloth:focus-visible { outline: 3px solid #3f7d20; outline-offset: 3px; }
+.haldi-greet { margin: 4px 0 0; font: 700 30px/1.15 'Kalam', cursive; color: #8a3300; overflow-wrap: anywhere; }
+.haldi-sub { margin: 4px 0 0; font-size: 16px; line-height: 1.35; color: var(--h-muted); }
+
+/* ---------- card + cloth ---------- */
+.haldi-cardwrap { position: relative; margin: 26px 4px 0; z-index: 1; }
+.haldi-thud { animation: haldi-thud .16s ease-out; }
+@keyframes haldi-thud { 40% { transform: scale(.988); } }
+
+.haldi-border { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.haldi-bsplat {
+  position: absolute; display: block; transform: translate(-50%, -50%) scale(.3); opacity: 0;
+  transition: opacity .45s ease-out, transform .5s cubic-bezier(.2, 1.6, .4, 1);
+  transition-delay: calc(var(--i) * 50ms);
+}
+.haldi-revealed .haldi-bsplat { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.haldi-static .haldi-bsplat { transition: none; }
+
+.haldi-card {
+  position: relative; z-index: 1; overflow: hidden; border-radius: 24px;
+  background: radial-gradient(120% 70% at 25% 0%, #ffe98a 0%, #ffd640 50%, #ffc928 100%);
+  box-shadow: 0 10px 30px rgba(170, 90, 0, .22), inset 0 0 0 2px rgba(255, 255, 255, .45);
+  color: var(--h-ink);
+}
+.haldi-revealed .haldi-card { animation: haldi-pop .6s cubic-bezier(.2, 1.5, .4, 1); }
+.haldi-static .haldi-card { animation: none; }
+@keyframes haldi-pop { 0% { transform: scale(.97); } 60% { transform: scale(1.015); } 100% { transform: none; } }
+.haldi-card-tex { position: absolute; inset: 0; pointer-events: none; }
+.haldi-card-tex span { position: absolute; display: block; transform: translate(-50%, -50%); }
+.haldi-card-in { position: relative; padding: 26px 18px 22px; text-align: center; }
+
+.haldi-cloth {
+  position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%;
+  border-radius: 24px; touch-action: pan-y; cursor: pointer;
+  box-shadow: 0 10px 30px rgba(120, 80, 20, .18);
+  transition: opacity .8s ease-out;
+}
+.haldi-gone { opacity: 0; pointer-events: none; }
+
+.haldi-sprig { position: absolute; z-index: 3; width: 64px; height: 46px; pointer-events: none; }
+.haldi-sprig-tr { top: -18px; right: -12px; transform: scaleX(-1); }
+.haldi-sprig-bl { bottom: -16px; left: -12px; transform: rotate(180deg) scaleX(-1); }
+
+.haldi-hint {
+  position: absolute; z-index: 3; left: 12px; right: 12px; top: 168px;
+  text-align: center; pointer-events: none; color: #a14a00; transition: opacity .35s;
+}
+.haldi-hint b { display: block; font: 700 27px/1.15 'Kalam', cursive; }
+.haldi-hint small { display: block; margin-top: 4px; font: 500 14px/1.3 'Mukta', sans-serif; color: var(--h-muted); }
+.haldi-hand { display: inline-block; font-size: 34px; animation: haldi-bob 1.3s ease-in-out infinite; }
+@keyframes haldi-bob { 50% { transform: translateY(-8px) rotate(-6deg); } }
+.haldi-hide { opacity: 0; }
+
+.haldi-fx { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.haldi-puff { position: absolute; width: 0; height: 0; }
+.haldi-puff i {
+  position: absolute; left: -4px; top: -4px; width: 9px; height: 9px; border-radius: 50%;
+  background: #f6a800; box-shadow: 0 0 0 1px rgba(200, 100, 0, .3);
+  transform: rotate(var(--a)) translateX(4px);
+  animation: haldi-puff .55s ease-out forwards;
+}
+@keyframes haldi-puff { to { transform: rotate(var(--a)) translateX(var(--d)) scale(.3); opacity: 0; } }
+
+/* ---------- card content ---------- */
+.haldi-ganesh { margin: 0 0 6px; font: 700 13px/1.4 'Martel', serif; color: var(--h-deep); }
+.haldi-title { margin: 0; display: flex; flex-direction: column; align-items: center; }
+.haldi-title-hi { font: 800 26px/1.5 'Martel', serif; color: #8a3300; }
+.haldi-title-en { font: 400 36px/1.05 'Yatra One', cursive; color: #7a2c00; text-shadow: 0 2px 0 rgba(255, 255, 255, .55); }
+.haldi-hosts { margin: 12px auto 0; max-width: 34ch; font-size: 15px; line-height: 1.45; color: var(--h-ink); }
+.haldi-hosts strong { font-weight: 700; color: #8a3300; }
+.haldi-couple { margin: 10px 0 0; font: 400 32px/1.15 'Yatra One', cursive; color: #7a2c00; }
+.haldi-couple em { font: 700 26px/1 'Kalam', cursive; color: var(--h-leaf); }
+.haldi-bride { margin: 2px 0 0; font-size: 13.5px; color: var(--h-muted); }
+
+.haldi-sched {
+  margin: 18px 0 0; padding: 14px 14px 6px; text-align: left;
+  background: rgba(255, 252, 235, .82); border-radius: 18px; border: 2px dashed rgba(154, 58, 0, .3);
+}
+.haldi-sched-h { margin: 0 0 6px; text-align: center; font: 700 21px/1.2 'Kalam', cursive; color: var(--h-deep); }
+.haldi-day + .haldi-day { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(154, 58, 0, .2); }
+.haldi-day-h { margin: 0 0 6px; text-align: center; font: 700 12.5px/1.3 'Mukta', sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--h-leaf); }
+.haldi-ev { display: grid; grid-template-columns: 64px 1fr; gap: 12px; padding: 6px 0 12px; }
+.haldi-ev-time { position: relative; display: flex; flex-direction: column; align-items: center; }
+.haldi-ev-time b, .haldi-ev-time i {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.haldi-ev-time b {
+  width: 62px; padding: 7px 0 2px; border-radius: 14px 14px 0 0; background: var(--h-marigold); color: #fff;
+  font: 400 19px/1 'Yatra One', cursive;
+}
+.haldi-ev-time small {
+  display: block; width: 62px; padding: 2px 0 4px; border-radius: 0 0 14px 14px; background: #b34700; color: #fff;
+  font: 700 12px/1.2 'Mukta', sans-serif; letter-spacing: .1em; text-align: center;
+}
+.haldi-ev-time i {
+  width: 62px; padding: 6px 4px; border-radius: 14px; background: var(--h-marigold); color: #fff;
+  font: 600 12px/1.2 'Mukta', sans-serif; font-style: italic; text-align: center;
+}
+.haldi-ev:not(:last-child) .haldi-ev-time::after {
+  content: ''; flex: 1; width: 0; margin-top: 4px; margin-bottom: -16px; border-left: 2px dashed rgba(154, 58, 0, .35);
+}
+.haldi-ev-body p { margin: 0; }
+.haldi-ev-name { font: 400 20px/1.2 'Yatra One', cursive; color: #7a2c00; }
+.haldi-ev-name span { font: 700 15px/1 'Martel', serif; color: var(--h-deep); margin-left: 2px; }
+.haldi-ev-quip { margin-top: 2px !important; font: 700 16px/1.3 'Kalam', cursive; color: #6a3000; }
+.haldi-ev-sub { margin-top: 3px !important; font-size: 13.5px; line-height: 1.35; font-style: italic; color: var(--h-muted); }
+.haldi-ev-place { margin-top: 4px !important; font-size: 14px; line-height: 1.35; font-weight: 500; color: var(--h-ink); }
+.haldi-ev-note { color: var(--h-leaf); font-weight: 600; }
+
+.haldi-rainbow {
+  margin-top: 14px; padding: 12px 12px 10px; border-radius: 18px;
+  background: rgba(255, 255, 255, .78);
+}
+.haldi-rainbow-h { margin: 0; font: 700 21px/1.2 'Kalam', cursive; color: var(--h-deep); }
+.haldi-swatches { display: flex; justify-content: center; gap: 6px; margin: 8px 0 6px; }
+.haldi-swatches span {
+  width: 26px; height: 26px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .15), 0 1px 2px rgba(0, 0, 0, .2);
+}
+.haldi-swatches span:nth-child(odd) { transform: translateY(-3px) rotate(-8deg); }
+.haldi-swatches span:nth-child(even) { transform: translateY(2px) rotate(10deg); }
+.haldi-rainbow-t { margin: 2px 0 0; font-size: 14px; line-height: 1.35; color: var(--h-ink); }
+
+/* ---------- details ---------- */
+.haldi-details { position: relative; z-index: 1; margin-top: 34px; scroll-margin-top: 12px; }
+.haldi-details-h { margin: 0; text-align: center; font: 400 28px/1.2 'Yatra One', cursive; color: #8a3300; }
+.haldi-details-sub { margin: 2px 0 12px; text-align: center; font: 700 17px/1.3 'Kalam', cursive; color: var(--h-muted); }
+.haldi-static .haldi-details-h { margin-bottom: 12px; }
+html.v-haldi .haldi-details .inv-sum {
+  font-size: 15px; border: 2px solid rgba(246, 180, 14, .7);
+  box-shadow: 0 8px 24px rgba(170, 90, 0, .14);
+  background-image: linear-gradient(90deg, #f2780c, #f6b40e, #3f7d20, #f6b40e, #f2780c);
+  background-size: 100% 6px; background-repeat: no-repeat; background-color: var(--sum-bg);
+}
+html.v-haldi .haldi-details .inv-sum-day:first-child { border-top: 0; margin-top: 0; padding-top: 4px; }
+html.v-haldi .haldi-details .inv-sum-day h3 { font-size: 13px; color: var(--h-leaf); }
+html.v-haldi .haldi-details .inv-sum-time { color: #a84300; font-size: 14px; }
+html.v-haldi .haldi-details .inv-sum-what strong { font-size: 16px; color: #5a2400; }
+html.v-haldi .haldi-details .inv-sum-note, html.v-haldi .haldi-details .inv-sum-place { font-size: 13.5px; }
+html.v-haldi .haldi-details .inv-sum-ev { grid-template-columns: 74px 1fr; padding: 8px 0; }
+html.v-haldi .haldi-details .inv-dir { grid-column: 2; justify-self: start; min-height: 44px; padding: 0 16px; font-size: 13px; }
+@media (max-width: 360px) { html.v-haldi .haldi-details .inv-sum-ev { grid-template-columns: 64px 1fr; } }
+html.v-haldi .haldi-details .inv-cal { min-height: 48px; padding: 0 24px; font-size: 15px; background: #a84300; }
+html.v-haldi .haldi-details .inv-sum-foot { font-size: 13px; }
+
+/* ---------- bottom bar ---------- */
+.haldi-bar {
+  position: fixed; z-index: 50; left: 50%; bottom: 0; width: 100%; max-width: 540px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px max(16px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background: rgba(255, 248, 222, .95); border-top: 2px solid rgba(246, 180, 14, .6);
+  box-shadow: 0 -6px 20px rgba(170, 90, 0, .12);
+  transition: transform .35s ease;
+}
+.haldi-bar-off { transform: translate(-50%, 120%); }
+.haldi-bowl { display: flex; align-items: center; gap: 8px; flex: none; }
+.haldi-katori { width: 60px; height: 43px; flex: none; }
+.haldi-paste-g { transform-origin: 32px 16px; transition: transform .4s cubic-bezier(.3, 1.4, .5, 1); }
+.haldi-bowl-txt { display: flex; flex-direction: column; line-height: 1.1; }
+.haldi-bowl-txt small { font-size: 12px; font-weight: 600; color: var(--h-muted); letter-spacing: .04em; }
+.haldi-bowl-txt b { font: 400 20px/1.1 'Yatra One', cursive; color: #8a3300; }
+.haldi-all {
+  margin-left: auto; min-height: 50px; padding: 0 20px; border: 0; border-radius: 999px; cursor: pointer;
+  background: linear-gradient(180deg, #d45d00, #a84300); color: #fff;
+  box-shadow: 0 4px 0 #7a3000, 0 6px 14px rgba(170, 70, 0, .3);
+  font: 400 18px/1 'Yatra One', cursive; white-space: nowrap;
+}
+.haldi-all:active { transform: translateY(2px); box-shadow: 0 2px 0 #7a3000; }
+.haldi-all:disabled { opacity: .85; }
+.haldi-go { margin: 0 auto; width: 100%; max-width: 360px; background: linear-gradient(180deg, #4f9a2c, #3f7d20); box-shadow: 0 4px 0 #2b5a14; }
+
+/* ---------- petal burst ---------- */
+.haldi-petals { position: fixed; inset: 0; z-index: 900; pointer-events: none; overflow: hidden; }
+.haldi-petals i {
+  position: absolute; left: 50%; top: 42%; width: var(--w); height: calc(var(--w) * 1.4); margin: -8px 0 0 -6px;
+  border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%; background: var(--c); opacity: 0;
+  animation: haldi-petal var(--d) cubic-bezier(.2, .6, .4, 1) forwards;
+}
+@keyframes haldi-petal {
+  0% { opacity: 1; transform: translate(0, 0) scale(.3); }
+  22% { opacity: 1; transform: translate(var(--bx), var(--by)) scale(1) rotate(calc(var(--r) * .3)); }
+  100% { opacity: .9; transform: translate(calc(var(--bx) + var(--sx)), 75vh) rotate(var(--r)); }
+}
+.haldi-toast {
+  position: absolute; left: 0; right: 0; top: 34%; margin: 0; text-align: center;
+  font: 700 38px/1.1 'Kalam', cursive; color: #b34700;
+  text-shadow: 0 2px 0 #fff, 0 0 18px #fff, 0 0 30px #fff3c9;
+  animation: haldi-toast 2.6s ease-out forwards;
+}
+@keyframes haldi-toast {
+  0% { opacity: 0; transform: scale(.6); }
+  15% { opacity: 1; transform: scale(1.08); }
+  25% { transform: scale(1); }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-30px); }
+}
+
+/* ---------- narrow phones ---------- */
+@media (max-width: 360px) {
+  .haldi-greet { font-size: 26px; }
+  .haldi-title-en { font-size: 31px; }
+  .haldi-couple { font-size: 28px; }
+  .haldi-card-in { padding: 22px 12px 18px; }
+  .haldi-sched { padding: 12px 10px 4px; }
+  .haldi-ev { grid-template-columns: 58px 1fr; gap: 10px; }
+  .haldi-ev-time b, .haldi-ev-time small, .haldi-ev-time i { width: 56px; }
+  .haldi-hint b { font-size: 24px; }
+  .haldi-skip { padding: 0 12px; font-size: 13px; }
+  .haldi-bowl-txt small { display: none; }
+  .haldi-all { padding: 0 16px; font-size: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .haldi-hand, .haldi-thud, .haldi-revealed .haldi-card { animation: none; }
+  .haldi-bsplat, .haldi-cloth, .haldi-paste-g { transition-duration: .01s; }
+}
+
+/* Ganesh doodle + blessings line (family feedback, 11 Oct) */
+.haldi-ganesh-art { display: block; width: 42px; height: auto; margin: -2px auto 8px; color: var(--h-deep); }
+.haldi-bless { margin: 12px auto 0; max-width: 34ch; font: 600 14px/1.45 'Mukta', system-ui, sans-serif; color: #8a3300; }
+.haldi-bless small { display: block; font-weight: 500; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--h-muted); }

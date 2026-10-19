@@ -1,0 +1,305 @@
+@import url('https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,500&family=Poppins:wght@400;500;600&display=swap');
+
+/* Diya — devotional, warm brass light on deep maroon. Everything scoped to html.v-diya / .diya-*. */
+@property --r { syntax: '<length>'; inherits: false; initial-value: 9999px; }
+
+html.v-diya {
+  --diya-gold: #e2bd66;
+  --diya-gold-hi: #f2d084;
+  --diya-saffron: #f59a32;
+  --diya-vermilion: #d8432a;
+  --diya-cream: #f8e8cb;
+  --diya-muted: #d8be9a;
+  --sum-bg: transparent;
+  --sum-ink: var(--diya-cream);
+  --sum-muted: var(--diya-muted);
+  --sum-accent: #f2ae4a;
+  --sum-rule: rgba(226, 189, 102, .26);
+  --sum-radius: 0;
+  --sum-font-display: 'Cormorant Garamond', Georgia, serif;
+  --sum-font-body: 'Poppins', system-ui, sans-serif;
+  --btn-bg: linear-gradient(180deg, #e0552b, #b3321b);
+  --btn-ink: #fff7e8;
+  background: #0b0304;
+  color-scheme: dark;
+}
+html.v-diya body { background: #0b0304; color: var(--diya-cream); }
+html.v-diya .inv-sound { background: rgba(60, 14, 18, .55); }
+
+.diya-root {
+  position: relative; overflow: hidden; overflow: clip; min-height: 100vh; min-height: 100dvh;
+  font-family: 'Poppins', system-ui, sans-serif; color: var(--diya-cream);
+}
+html.img .diya-root { min-height: 0; }
+.diya-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* ---------- background layers ---------- */
+.diya-bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse 95% 60% at 50% 36%, #3a0d12 0%, #1d0709 50%, #0b0304 100%);
+}
+.diya-bg-lit {
+  opacity: 0; transition: opacity 2.6s ease;
+  background:
+    radial-gradient(ellipse 120% 50% at 50% 24%, rgba(222, 104, 40, .34) 0%, rgba(130, 28, 26, .36) 38%, transparent 72%),
+    linear-gradient(180deg, #3d0d12 0%, #2c090d 45%, #1b0608 100%);
+}
+.is-lit .diya-bg-lit { opacity: .5; }
+.is-revealed .diya-bg-lit { opacity: 1; }
+html.img .diya-bg, html.img .diya-light, html.img .diya-petals { position: absolute; }
+html.img .diya-bg-lit {
+  background:
+    radial-gradient(ellipse 120% 700px at 50% 220px, rgba(222, 104, 40, .34) 0%, rgba(130, 28, 26, .36) 38%, transparent 72%),
+    linear-gradient(180deg, #3d0d12 0%, #2c090d 45%, #1b0608 100%);
+}
+
+.diya-light { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.diya-wave {
+  position: absolute; left: var(--x, 50%); top: var(--y, 35%);
+  width: 300px; height: 300px; margin: -150px 0 0 -150px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 214, 140, .5) 0%, rgba(255, 160, 70, .26) 30%, rgba(220, 90, 40, .1) 55%, transparent 72%);
+  opacity: 0; transform: scale(.3);
+}
+.is-revealed .diya-wave { animation: diya-wave 3.2s cubic-bezier(.2, .6, .3, 1) both; }
+.is-instant .diya-wave, .is-rm .diya-wave { display: none; }
+@keyframes diya-wave {
+  0% { opacity: .9; transform: scale(.4); }
+  55% { opacity: .55; }
+  100% { opacity: 0; transform: scale(7.5); }
+}
+
+.diya-petals { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.diya-petal {
+  position: absolute; top: -40px; left: var(--l); width: var(--s); height: calc(var(--s) * 1.4);
+  opacity: 0; animation: diya-fall var(--t) linear var(--d) infinite;
+}
+.diya-petal svg { display: block; width: 100%; height: 100%; }
+@keyframes diya-fall {
+  0% { opacity: 0; transform: translate(0, 0) rotate(var(--r0)); }
+  8% { opacity: .5; }
+  30% { transform: translate(var(--dx), 32vh) rotate(calc(var(--r0) + 110deg)); }
+  60% { transform: translate(calc(var(--dx) * -.6), 64vh) rotate(calc(var(--r0) + 220deg)); }
+  90% { opacity: .45; }
+  100% { opacity: 0; transform: translate(calc(var(--dx) * .4), calc(100vh + 60px)) rotate(calc(var(--r0) + 330deg)); }
+}
+
+/* ---------- hero: bell, greeting, diya ---------- */
+.diya-hero {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  min-height: 100vh; min-height: 100dvh;
+  padding: calc(env(safe-area-inset-top, 0px) + clamp(104px, 14vh, 150px)) 16px 0;
+  transition: min-height 1.6s cubic-bezier(.4, 0, .2, 1);
+}
+.is-revealed .diya-hero { min-height: 0; }
+.is-instant .diya-hero, .is-rm .diya-hero { transition: none; }
+html.img .diya-hero { min-height: 0; padding-top: 110px; }
+
+.diya-bell {
+  position: absolute; top: env(safe-area-inset-top, 0px); left: 50%;
+  width: 56px; height: 96px; margin-left: -28px; padding: 0; border: 0; background: none; cursor: pointer;
+}
+.diya-bell svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.diya-bell-swing { transform-box: view-box; transform-origin: 28px 0; animation: diya-sway 7s ease-in-out infinite; }
+.diya-bell.is-swing .diya-bell-swing { animation: diya-ring 2.4s ease-out; }
+.diya-bell:focus-visible, .diya-lamp:focus-visible { outline: 2px solid var(--diya-gold); outline-offset: 4px; border-radius: 12px; }
+@keyframes diya-sway { 0%, 100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.5deg); } }
+@keyframes diya-ring {
+  0% { transform: rotate(0); } 10% { transform: rotate(14deg); } 25% { transform: rotate(-11deg); }
+  40% { transform: rotate(8deg); } 55% { transform: rotate(-5deg); } 70% { transform: rotate(3deg); }
+  85% { transform: rotate(-1.2deg); } 100% { transform: rotate(0); }
+}
+
+.diya-kicker { margin: 0 0 4px; font: 400 15px/1.5 'Tiro Devanagari Hindi', serif; color: var(--diya-saffron); letter-spacing: .03em; }
+.diya-greet {
+  margin: 0; max-width: 18em; font: italic 500 27px/1.15 'Cormorant Garamond', Georgia, serif;
+  color: #f3dcae; text-wrap: balance; overflow-wrap: anywhere;
+}
+
+.diya-lamp {
+  position: relative; width: min(230px, 64vw); height: min(230px, 64vw);
+  margin: -6px 0 0; padding: 0; border: 0; background: none; cursor: pointer; color: inherit;
+}
+.diya-svg { position: relative; z-index: 1; display: block; width: 100%; height: 100%; overflow: visible; }
+.diya-shade { opacity: .45; transition: opacity 1.6s ease; }
+.diya-sheen { opacity: 0; transition: opacity 1.6s ease; }
+.is-lit .diya-shade { opacity: 0; }
+.is-lit .diya-sheen { opacity: .6; }
+
+.diya-glow {
+  position: absolute; z-index: 0; left: 50%; top: 41%;
+  width: 360px; height: 360px; margin: -180px 0 0 -180px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 214, 130, .62) 0%, rgba(255, 166, 64, .3) 18%, rgba(226, 92, 36, .13) 38%, rgba(160, 40, 20, 0) 64%);
+  opacity: 0; transform: scale(.3);
+  transition: opacity 1.2s ease, transform 1.5s cubic-bezier(.2, .7, .3, 1);
+}
+.is-lit .diya-glow { opacity: 1; transform: scale(1); animation: diya-breathe 3.4s ease-in-out 1.5s infinite alternate; }
+.diya-lamp.is-flare .diya-glow { animation: diya-flare .8s ease-out; }
+@keyframes diya-breathe { from { opacity: 1; transform: scale(1); } to { opacity: .82; transform: scale(.94); } }
+@keyframes diya-flare { 40% { transform: scale(1.12); opacity: 1; } }
+
+/* strike */
+.diya-spark { fill: #ffe9a6; opacity: 0; }
+.diya-flash { opacity: 0; transform-box: fill-box; transform-origin: center; }
+.is-striking .diya-spark { animation: diya-spark .55s ease-out both; }
+.is-striking .diya-flash { animation: diya-flash .5s ease-out both; }
+@keyframes diya-spark { 0% { opacity: 1; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)); } }
+@keyframes diya-flash { 0% { opacity: 0; transform: scale(.2); } 30% { opacity: 1; transform: scale(1.3); } 100% { opacity: 0; transform: scale(.6); } }
+
+/* flame */
+.diya-flame { transform-box: fill-box; transform-origin: 50% 100%; opacity: 0; transform: scale(.05); }
+.is-lit .diya-flame { opacity: 1; transform: none; animation: diya-ignite 1s cubic-bezier(.3, .7, .3, 1) both; }
+.is-instant .diya-flame { animation: none; }
+.diya-flame-o { transform-box: fill-box; transform-origin: 50% 100%; animation: diya-flicker 2.4s ease-in-out infinite; }
+.diya-flame-i { transform-box: fill-box; transform-origin: 50% 100%; animation: diya-flicker2 1.5s ease-in-out infinite; }
+@keyframes diya-ignite {
+  0% { opacity: 0; transform: scale(.1, .05); } 25% { opacity: 1; transform: scale(.5, .7); }
+  55% { transform: scale(1.08, 1.22); } 78% { transform: scale(.96, .94); } 100% { transform: none; }
+}
+@keyframes diya-flicker {
+  0%, 100% { transform: scale(1, 1) skewX(0); } 20% { transform: scale(.97, 1.05) skewX(1.5deg); }
+  40% { transform: scale(1.02, .96) skewX(-1deg); } 60% { transform: scale(.98, 1.07) skewX(-2deg); }
+  80% { transform: scale(1.01, .98) skewX(1deg); }
+}
+@keyframes diya-flicker2 { 0%, 100% { transform: scale(1); } 33% { transform: scale(.94, 1.08); } 66% { transform: scale(1.05, .95); } }
+
+/* embers */
+.diya-embers { position: absolute; z-index: 2; left: 50%; top: 22%; width: 0; height: 0; pointer-events: none; }
+.diya-embers i {
+  position: absolute; left: -1.5px; top: 0; width: 3px; height: 3px; border-radius: 50%;
+  background: #ffd27a; box-shadow: 0 0 6px 1px rgba(255, 170, 60, .8); opacity: 0;
+}
+.is-revealed .diya-embers i { animation: diya-ember var(--t, 4s) ease-out var(--d, 0s) infinite; }
+@keyframes diya-ember {
+  0% { opacity: 0; transform: translate(0, 0) scale(1); } 12% { opacity: .8; }
+  100% { opacity: 0; transform: translate(var(--dx, 0), -110px) scale(.4); }
+}
+
+.diya-hint {
+  margin: 14px 0 0; max-height: 3em; overflow: hidden;
+  font: 400 14px/1.4 'Poppins', system-ui, sans-serif; color: var(--diya-muted); letter-spacing: .02em;
+  transition: opacity .6s ease, max-height .8s ease, margin .8s ease;
+  animation: diya-pulse 2.8s ease-in-out infinite;
+}
+@keyframes diya-pulse { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
+.is-striking .diya-hint, .is-lit .diya-hint { opacity: 0; max-height: 0; margin: 0; animation: none; }
+
+.diya-skip {
+  position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); transform: translateX(-50%);
+  min-height: 44px; padding: 0 22px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+  border: 1px solid rgba(226, 189, 102, .35); background: rgba(24, 6, 8, .5); color: var(--diya-muted);
+  font: 500 13px/1 'Poppins', system-ui, sans-serif; letter-spacing: .02em;
+  transition: opacity .5s ease, visibility .5s;
+}
+.diya-skip:focus-visible { outline: 2px solid var(--diya-gold); outline-offset: 3px; }
+.is-striking .diya-skip, .is-lit .diya-skip { opacity: 0; visibility: hidden; pointer-events: none; }
+html.img .diya-skip, html.img .diya-hint { display: none; }
+
+/* ---------- revealed card ---------- */
+.diya-card {
+  position: relative; z-index: 2; display: none;
+  padding: 6px 14px calc(env(safe-area-inset-bottom, 0px) + 44px);
+}
+.is-revealed .diya-card {
+  display: block; --r: 9999px;
+  -webkit-mask-image: radial-gradient(circle at 50% -70px, #000 var(--r), transparent calc(var(--r) + 240px));
+  mask-image: radial-gradient(circle at 50% -70px, #000 var(--r), transparent calc(var(--r) + 240px));
+  animation: diya-unveil 3.4s cubic-bezier(.3, .55, .4, 1) backwards;
+}
+.is-unveiled .diya-card, .is-instant .diya-card { -webkit-mask-image: none; mask-image: none; animation: none; }
+.is-rm.is-revealed .diya-card { -webkit-mask-image: none; mask-image: none; animation: diya-fade .8s ease both; }
+@keyframes diya-unveil { from { --r: -240px; } to { --r: 2600px; } }
+@keyframes diya-fade { from { opacity: 0; } }
+
+.is-revealed .diya-rv { animation: diya-rise 1.1s cubic-bezier(.2, .7, .3, 1) backwards; animation-delay: calc(var(--i, 0) * 140ms + 450ms); }
+.is-instant .diya-rv, .is-rm .diya-rv { animation: none; }
+@keyframes diya-rise { from { opacity: 0; transform: translateY(14px); } }
+
+.diya-sheet {
+  position: relative; max-width: 480px; margin: 0 auto; padding: 40px 22px 30px; text-align: center;
+  border: 1px solid rgba(226, 189, 102, .55); outline: 1px solid rgba(226, 189, 102, .22); outline-offset: -8px;
+  background:
+    radial-gradient(ellipse 120% 340px at 50% 0%, rgba(255, 170, 80, .12), transparent 70%),
+    linear-gradient(180deg, rgba(54, 11, 16, .84), rgba(30, 7, 9, .9));
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .45), inset 0 0 40px rgba(0, 0, 0, .25);
+}
+.diya-corner { position: absolute; width: 38px; height: 38px; color: var(--diya-gold); }
+.diya-corner-tl { top: 3px; left: 3px; }
+.diya-corner-tr { top: 3px; right: 3px; transform: scaleX(-1); }
+.diya-corner-bl { bottom: 3px; left: 3px; transform: scaleY(-1); }
+.diya-corner-br { bottom: 3px; right: 3px; transform: scale(-1, -1); }
+
+.diya-ganesh { margin: 0; font: 400 19px/1.5 'Tiro Devanagari Hindi', serif; color: #f6b54e; letter-spacing: .02em; }
+.diya-motif { width: min(300px, 100%); margin: 12px auto 4px; }
+.diya-motif svg { display: block; width: 100%; height: auto; }
+.diya-motif-word { font: 400 22px 'Tiro Devanagari Hindi', serif; fill: #ffe2a0; }
+/* Ganesh ji doodle under "Shri Ganeshay Namah" */
+.diya-ganesh-art { display: flex; justify-content: center; margin: 6px 0 0; color: var(--diya-gold); }
+.diya-ganesh-art svg { display: block; width: 46px; height: auto; max-width: 100%; }
+/* Hanuman ji doodle in a gold halo (Sunderkand) */
+.diya-hmn { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.diya-hmn-line { flex: 1; height: 1.2px; max-width: 86px; }
+.diya-hmn-l { background: linear-gradient(90deg, transparent, var(--diya-gold)); }
+.diya-hmn-r { background: linear-gradient(90deg, var(--diya-gold), transparent); }
+.diya-hmn-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--diya-gold); flex: none; }
+.diya-hmn-halo {
+  position: relative; flex: none; width: 128px; height: 128px; border-radius: 50%;
+  display: grid; place-items: center; color: var(--diya-gold-hi);
+  background: radial-gradient(circle at 50% 45%, rgba(245, 154, 50, .22), rgba(42, 8, 11, .9) 70%);
+  box-shadow: 0 0 0 1.5px var(--diya-gold), 0 0 0 6px rgba(42, 8, 11, .9), 0 0 0 7px rgba(226, 189, 102, .45), 0 0 26px rgba(245, 154, 50, .25);
+}
+.diya-hmn-halo svg { display: block; width: 104px; height: auto; max-width: 100%; }
+.diya-verse {
+  margin: 8px 0 0; font: 400 clamp(15px, 4.6vw, 19px)/1.85 'Tiro Devanagari Hindi', serif; color: var(--diya-cream);
+}
+.diya-verse span { display: block; text-wrap: balance; }
+.diya-verse cite { display: block; margin-top: 8px; font: 400 13px/1.4 'Tiro Devanagari Hindi', serif; font-style: normal; color: var(--diya-muted); opacity: .9; }
+.diya-div { width: min(220px, 80%); margin: 20px auto 16px; }
+.diya-div svg { display: block; width: 100%; height: auto; }
+.diya-title { margin: 0; text-wrap: balance; font: 600 clamp(26px, 8vw, 34px)/1.08 'Cormorant Garamond', Georgia, serif; color: var(--diya-gold-hi); letter-spacing: .01em; }
+.diya-title span { display: block; margin-top: 8px; font: 400 22px/1.45 'Tiro Devanagari Hindi', serif; color: var(--diya-saffron); }
+.diya-hosts { margin: 10px 0 2px; font: 600 14px/1.45 'Poppins', system-ui, sans-serif; color: var(--diya-cream); }
+.diya-line { margin: 0 auto; max-width: 30ch; text-wrap: balance; font: italic 500 18px/1.35 'Cormorant Garamond', Georgia, serif; color: var(--diya-muted); }
+.diya-couple {
+  margin: 14px 0 0; display: flex; flex-direction: column; align-items: center;
+  font: 600 42px/1 'Cormorant Garamond', Georgia, serif; color: #f3d488;
+}
+.diya-couple em { font: italic 400 18px/1.7 'Cormorant Garamond', Georgia, serif; color: var(--diya-muted); }
+.diya-bride { margin: 8px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--diya-muted); }
+.diya-bless { margin: 18px auto 0; max-width: 36ch; text-wrap: balance; font: italic 500 15px/1.35 'Cormorant Garamond', Georgia, serif; color: rgba(216, 190, 154, .88); }
+.diya-mark { scroll-margin-top: 16px; margin-top: 24px; }
+.diya-dkick { margin: 8px 0 0; font: 600 11.5px/1.2 'Poppins', system-ui, sans-serif; letter-spacing: .2em; text-transform: uppercase; color: var(--diya-gold); }
+.diya-close { margin: 22px 0 0; text-align: center; font: 400 17px/1.4 'Tiro Devanagari Hindi', serif; color: #f6b54e; }
+
+/* details block, restyled */
+html.v-diya .diya-sum .inv-sum { padding: 0; text-align: left; background: transparent; }
+html.v-diya .diya-sum .inv-sum-day:first-child { border-top: 0; margin-top: 0; padding-top: 4px; }
+html.v-diya .diya-sum .inv-sum-day h3 { text-align: center; color: var(--diya-saffron); margin-bottom: 10px; }
+html.v-diya .diya-sum .inv-sum-ev { grid-template-columns: 72px 1fr; gap: 4px 12px; padding: 8px 0; }
+html.v-diya .diya-sum .inv-sum-time { color: var(--diya-gold-hi); font-size: 14px; }
+html.v-diya .diya-sum .inv-sum-what strong { color: #fbeed5; font-size: 19px; }
+html.v-diya .diya-sum .inv-sum-what .inv-sum-note:first-of-type { color: #f6b54e; font-style: italic; font-size: 17px; margin-top: 3px; }
+html.v-diya .diya-sum .inv-sum-place { color: var(--diya-muted); font-size: 13.5px; }
+html.v-diya .diya-sum .inv-sum-ev .inv-dir {
+  grid-column: 2; justify-self: start; min-height: 44px; margin-top: 4px; padding: 0 18px;
+  background: transparent; color: var(--diya-gold-hi); box-shadow: inset 0 0 0 1px rgba(226, 189, 102, .6);
+}
+html.v-diya .diya-sum .inv-cal { min-height: 46px; padding: 0 24px; font-size: 13.5px; box-shadow: 0 6px 20px rgba(216, 67, 42, .3); }
+html.v-diya .diya-sum .inv-sum-actions { margin-top: 18px; }
+html.v-diya .diya-sum .inv-sum-foot { text-align: center; }
+html.v-diya .diya-sum .inv-sum-foot p:first-child { font: italic 500 16px/1.4 'Cormorant Garamond', Georgia, serif; color: var(--diya-cream); }
+html.v-diya .diya-sum .inv-sum-foot a { display: inline-block; padding: 8px 2px; color: var(--diya-gold-hi); }
+
+@media (max-width: 360px) {
+  .diya-sheet { padding: 36px 16px 26px; }
+  .diya-couple { font-size: 36px; }
+  html.v-diya .diya-sum .inv-sum-ev { grid-template-columns: 64px 1fr; }
+}
+
+/* ---------- reduced motion & still image ---------- */
+.is-rm .diya-flame, .is-rm .diya-flame-o, .is-rm .diya-flame-i,
+.is-rm .diya-bell-swing, .is-rm .diya-glow, .is-rm .diya-hint, .is-rm .diya-embers i { animation: none !important; }
+.is-rm .diya-glow { transition: opacity .6s ease; transform: none; }
+.is-rm .diya-embers, .is-rm .diya-petals { display: none; }
+html.img .diya-root *, html.img .diya-root *::before, html.img .diya-root *::after { animation: none !important; transition: none !important; }
+html.img .diya-embers, html.img .diya-wave { display: none; }

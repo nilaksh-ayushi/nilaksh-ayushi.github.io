@@ -1,0 +1,75 @@
+/* Shared base for every variant. Variants restyle the details block by overriding these variables
+   on :root (or html.v-<id>) in their own CSS. */
+:root {
+  --sum-bg: #fffaf2;
+  --sum-ink: #3a1d12;
+  --sum-muted: #7a5a4a;
+  --sum-accent: #9b1c31;
+  --sum-name: var(--sum-accent);   /* names (couple, parents, blessings): never black */
+  --sum-rule: rgba(155, 28, 49, .18);
+  --sum-radius: 18px;
+  --sum-font-display: 'Cormorant Garamond', Georgia, serif;
+  --sum-font-body: 'Poppins', system-ui, sans-serif;
+  --btn-bg: var(--sum-accent);
+  --btn-ink: #fff;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body { -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+#app { min-height: 100vh; min-height: 100dvh; max-width: 540px; margin: 0 auto; position: relative; }
+html.img #app { min-height: 0; }
+html.img .inv-sound { display: none; }
+
+.inv-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4em;
+  font: 600 13px/1 var(--sum-font-body); letter-spacing: .02em;
+  padding: .7em 1.1em; border-radius: 999px; border: 0; cursor: pointer;
+  background: var(--btn-bg); color: var(--btn-ink); text-decoration: none; white-space: nowrap;
+}
+.inv-btn:focus-visible { outline: 3px solid color-mix(in srgb, var(--sum-accent) 50%, transparent); outline-offset: 2px; }
+
+.inv-sound {
+  position: fixed; top: 12px; right: 12px; z-index: 1000;
+  width: 40px; height: 40px; border-radius: 50%; border: 0; cursor: pointer;
+  background: rgba(0, 0, 0, .35); color: #fff; font-size: 18px; line-height: 40px;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+
+/* ---------- standard details block (ctx.summaryHTML) ---------- */
+.inv-sum-wrap { padding: 20px 16px 40px; }
+.inv-sum {
+  background: var(--sum-bg); color: var(--sum-ink); border-radius: var(--sum-radius);
+  padding: 26px 20px 22px; font: 14px/1.5 var(--sum-font-body);
+}
+.inv-sum-head { text-align: center; margin-bottom: 18px; }
+.inv-sum-kicker { margin: 0 0 6px; font: 600 11px/1.2 var(--sum-font-body); letter-spacing: .18em; text-transform: uppercase; color: var(--sum-accent); }
+.inv-sum-hosts { margin: 0; font-weight: 600; }
+.inv-sum-bless { margin: 0 0 8px; font: italic 400 14px/1.45 var(--sum-font-display); color: var(--sum-muted); }
+.inv-sum-bless .inv-name { font-style: normal; font-weight: 600; letter-spacing: .02em; }
+.inv-sum .inv-name { color: var(--sum-name); }
+.inv-sum-line { margin: 2px 0 10px; color: var(--sum-muted); font-size: 13px; }
+.inv-sum-couple { margin: 0; font: 600 34px/1.05 var(--sum-font-display); color: var(--sum-name); display: flex; flex-direction: column; align-items: center; }
+.inv-sum-couple em { font: italic 400 16px/1.6 var(--sum-font-display); color: var(--sum-muted); }
+.inv-sum-bride { margin: 6px 0 0; color: var(--sum-muted); font-size: 12.5px; }
+.inv-sum-day { border-top: 1px solid var(--sum-rule); padding-top: 12px; margin-top: 12px; }
+.inv-sum-day h3 { margin: 0 0 8px; font: 600 12px/1.3 var(--sum-font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--sum-accent); }
+.inv-sum-ev { display: grid; grid-template-columns: 74px 1fr auto; gap: 10px; align-items: start; padding: 6px 0; }
+.inv-sum-time { font-weight: 600; font-size: 13px; padding-top: 1px; }
+.inv-sum-time i { font-weight: 500; font-size: 12px; line-height: 1.25; display: block; }
+.inv-sum-what strong { font-weight: 600; }
+.inv-sum-note, .inv-sum-place { display: block; color: var(--sum-muted); font-size: 12.5px; }
+.inv-sum-ev .inv-dir { padding: .55em .9em; font-size: 12px; }
+.inv-sum-actions { text-align: center; margin-top: 16px; }
+.inv-sum-foot { margin-top: 18px; border-top: 1px solid var(--sum-rule); padding-top: 12px; text-align: center; font-size: 12px; color: var(--sum-muted); }
+.inv-sum-foot p { margin: 2px 0; }
+.inv-sum-foot a { color: inherit; }
+@media (max-width: 360px) {
+  .inv-sum-ev { grid-template-columns: 64px 1fr; }
+  .inv-sum-ev .inv-dir { grid-column: 2; justify-self: start; }
+}
+
+/* ---------- Ganesh block + doodles (Invite.ganeshBlockHTML / Invite.art) ---------- */
+.inv-doodle { display: block; margin: 0 auto; overflow: visible; }
+.inv-ganesh { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; color: inherit; }
+.inv-ganesh p { margin: 0; font: 500 15px/1.4 'Tiro Devanagari Hindi', 'Noto Serif Devanagari', serif; letter-spacing: .02em; }
