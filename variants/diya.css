@@ -279,7 +279,7 @@ html.v-diya .diya-sum .inv-cal { min-height: 46px; padding: 0 24px; font-size: 1
 html.v-diya .diya-sum .inv-sum-actions { margin-top: 18px; }
 html.v-diya .diya-sum .inv-sum-foot { text-align: center; }
 html.v-diya .diya-sum .inv-sum-foot p:first-child { font: italic 500 16px/1.4 'Cormorant Garamond', Georgia, serif; color: var(--diya-cream); }
-html.v-diya .diya-sum .inv-sum-foot a { display: inline-block; padding: 8px 2px; color: var(--diya-gold-hi); }
+html.v-diya .diya-sum .inv-sum-foot a { color: var(--diya-gold-hi); }
 
 @media (max-width: 360px) {
   .diya-sheet { padding: 36px 16px 26px; }

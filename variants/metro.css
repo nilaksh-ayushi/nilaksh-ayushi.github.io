@@ -402,6 +402,7 @@ html.v-metro.img body { background: #0d1220; }
 .metro-p-head .metro-brand { margin: 10px 0 14px; }
 .metro-p-greet { margin: 0; font: 800 26px/1.2 var(--m-sans); color: var(--m-gold); }
 .metro-p-line { margin: 8px auto 0; max-width: 40ch; font: 500 14px/1.45 var(--m-sans); color: rgba(255,255,255,.8); }
+.metro-p-hosts { display: block; margin-bottom: 2px; font-weight: 700; color: #fff; }
 .metro-p-couple { margin: 10px 0 0; font: 800 40px/1.1 var(--m-sans); letter-spacing: -.02em; }
 .metro-p-couple span { color: #ff5fb1; font-weight: 600; }
 .metro-p-bride { margin: 6px 0 0; font: 500 13px/1.4 var(--m-sans); color: rgba(255,255,255,.7); }

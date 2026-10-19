@@ -319,9 +319,9 @@
         </section>`).join('');
       const foot = opts.footer === false ? '' : `
         <footer class="inv-sum-foot">
-          <p>With love, <span class="inv-name">${esc(P.hosts)}</span></p>
-          <p>${esc(P.address)}</p>
-          <p>${P.phones.map(p => `<a href="tel:+91${esc(p)}">${esc(p)}</a>`).join(' · ')}</p>
+          <p class="inv-sum-love">With love,<br><span class="inv-name">${esc(P.hosts)}</span></p>
+          <p class="inv-sum-addr">${esc(P.address)}</p>
+          <p class="inv-sum-phones">${P.phones.map(p => `<a class="inv-sum-phone" href="tel:+91${esc(p)}"><span aria-hidden="true">📞</span> ${esc(p.replace(/^(\d{5})(\d{5})$/, '$1 $2'))}</a>`).join('')}</p>
         </footer>`;
       const cal = ctx.isStatic ? '' : `<div class="inv-sum-actions">${calendarButtonHTML()}</div>`;
       return `<div class="inv-sum">${head}${days}${cal}${foot}</div>`;

@@ -386,7 +386,9 @@
         ctx.sound.play('success');
         thanks.textContent = n === 5 ? 'Thank you! Please collect your 5★ in person, on the dance floor 💃'
           : n === 4 ? '4★? Bring your dancing shoes and we’ll earn that last star 😄'
-            : `Only ${n}★? Come for the dinner, you’ll change your mind 😄`;
+            : n === 3 ? '3★? Not bad! One dhol beat and you’ll be at 5, see you there 🥁'
+              : n === 2 ? 'Only 2★? Come for the dinner, you’ll change your mind 😄'
+                : '1★?! Even the ghodi is upset 🐴 Give us one dance and we’ll win you over 🙏';
       }
 
       let callI = 0, toastT = 0;

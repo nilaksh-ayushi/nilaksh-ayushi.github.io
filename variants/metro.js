@@ -466,7 +466,7 @@
           <div class="metro-brand">${LOGO}<span><b>Shaadi Metro</b><i lang="hi">शादी मेट्रो</i></span></div>
           <p class="metro-p-greet">${esc(ctx.greeting)}</p>
           <p class="metro-p-bless"><small>With the divine blessings of</small>${esc(P.blessings)}</p>
-          <p class="metro-p-line">${esc(P.groomParents)} ${esc(ctx.occasion.line)}</p>
+          <p class="metro-p-line"><span class="metro-p-hosts">${esc(P.groomParents)}</span>${esc(ctx.occasion.line)}</p>
           <h1 class="metro-p-couple">${esc(P.groom)} <span>&amp;</span> ${esc(P.bride)}</h1>
           <p class="metro-p-bride">${esc(P.bride)}, daughter of ${esc(P.brideParents)}</p>
         </header>

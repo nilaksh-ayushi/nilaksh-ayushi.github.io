@@ -64,6 +64,11 @@ html.img .inv-sound { display: none; }
 .inv-sum-foot { margin-top: 18px; border-top: 1px solid var(--sum-rule); padding-top: 12px; text-align: center; font-size: 12px; color: var(--sum-muted); }
 .inv-sum-foot p { margin: 2px 0; }
 .inv-sum-foot a { color: inherit; }
+.inv-sum-foot .inv-sum-love { margin-bottom: 8px; font-size: 1.1em; line-height: 1.4; }
+.inv-sum-love .inv-name { font-weight: 600; font-size: 1.15em; }
+.inv-sum-foot .inv-sum-addr { max-width: 30ch; margin: 2px auto; line-height: 1.45; text-wrap: balance; }
+.inv-sum-foot .inv-sum-phones { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
+.inv-sum-foot a.inv-sum-phone { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px; border: 1px solid currentColor; border-radius: 999px; text-decoration: none; white-space: nowrap; font-weight: 600; }
 @media (max-width: 360px) {
   .inv-sum-ev { grid-template-columns: 64px 1fr; }
   .inv-sum-ev .inv-dir { grid-column: 2; justify-self: start; }
