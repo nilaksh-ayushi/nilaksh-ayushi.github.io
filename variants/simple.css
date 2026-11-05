@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Tiro+Devanagari+Hindi&display=swap');
+
+/* Simple Card — ivory paper, maroon ink, a thin gold frame. No game, no sound. Everything scoped to
+   html.v-simple / .sc-*. (Cormorant Garamond + Poppins come from invite.html.) */
+html.v-simple {
+  --sc-bg: #efe5d3;
+  --sc-paper: #fffbf3;
+  --sc-ink: #2f2620;
+  --sc-maroon: #7d1d2c;
+  --sc-gold: #b08d3c;
+  --sc-muted: #75625a;
+  --sc-display: 'Cormorant Garamond', Georgia, serif;
+  --sc-script: 'Great Vibes', 'Cormorant Garamond', cursive;
+  --sc-body: 'Poppins', system-ui, sans-serif;
+  --btn-bg: var(--sc-maroon);
+  --btn-ink: #fff;
+  --sum-accent: var(--sc-maroon);
+  background: var(--sc-bg);
+}
+html.v-simple body {
+  background:
+    radial-gradient(circle at 50% 0, rgba(255, 255, 255, .6), transparent 55%),
+    var(--sc-bg);
+  color: var(--sc-ink);
+}
+
+.sc-root { padding: 22px 14px 32px; font: 400 15px/1.6 var(--sc-body); }
+.sc-card {
+  position: relative; background: var(--sc-paper); color: var(--sc-ink);
+  padding: 38px 24px 30px; text-align: center; border-radius: 4px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .04), 0 22px 44px -22px rgba(80, 50, 20, .45);
+}
+/* thin double gold frame */
+.sc-card::before, .sc-card::after { content: ''; position: absolute; pointer-events: none; border: 1px solid var(--sc-gold); }
+.sc-card::before { inset: 10px; }
+.sc-card::after { inset: 14px; opacity: .55; }
+
+.sc-card p, .sc-card h1, .sc-card h2, .sc-card h3 { margin: 0; }
+.sc-god { color: var(--sc-maroon); }
+.sc-god + .sc-god { margin-top: 10px; }
+.sc-card .inv-ganesh p { font: 400 18px/1.4 'Tiro Devanagari Hindi', serif; color: var(--sc-gold); }
+.sc-shloka { margin-top: 12px !important; font: 400 15.5px/1.75 'Tiro Devanagari Hindi', serif; color: var(--sc-maroon); }
+
+.sc-flourish { display: block; width: 150px; height: 20px; margin: 22px auto 18px; fill: none; stroke: var(--sc-gold); stroke-width: 1.3; }
+.sc-flourish .sc-dot { fill: var(--sc-gold); stroke: none; }
+
+.sc-greet { font: italic 500 18px/1.4 var(--sc-display); color: var(--sc-muted); }
+.sc-title { margin-top: 8px !important; font: 600 15px/1.3 var(--sc-body); letter-spacing: .3em; text-transform: uppercase; color: var(--sc-maroon); }
+
+.sc-invite { margin-top: 18px; display: grid; gap: 8px; }
+.sc-invite p { text-wrap: balance; }
+.sc-bless { font: italic 400 16px/1.5 var(--sc-display); color: var(--sc-muted); }
+.sc-name { font-style: normal; font-weight: 600; color: var(--sc-maroon); }
+.sc-hosts { margin-top: 4px !important; font: 600 22px/1.3 var(--sc-display); color: var(--sc-maroon); }
+.sc-line { font-size: 14px; color: var(--sc-muted); max-width: 34ch; margin: 0 auto !important; }
+.sc-couple { display: flex; flex-direction: column; align-items: center; margin: 6px 0 2px !important; font: 400 54px/1.1 var(--sc-script); color: var(--sc-maroon); }
+.sc-couple em { font: italic 400 18px/1.6 var(--sc-display); color: var(--sc-gold); }
+.sc-bride { font-size: 14px; color: var(--sc-muted); }
+
+.sc-kicker { font: 600 12px/1.3 var(--sc-body); letter-spacing: .26em; text-transform: uppercase; color: var(--sc-gold); }
+.sc-day { margin-top: 16px; }
+.sc-day + .sc-day { border-top: 1px solid rgba(176, 141, 60, .35); padding-top: 16px; }
+.sc-date { font: 600 13px/1.4 var(--sc-body); letter-spacing: .08em; text-transform: uppercase; color: var(--sc-maroon); }
+.sc-ev { margin-top: 12px; display: grid; gap: 1px; justify-items: center; }
+.sc-ev + .sc-ev { margin-top: 16px; }
+.sc-ev-name { font: 600 24px/1.25 var(--sc-display); color: var(--sc-ink); }
+.sc-ev-time { font-weight: 600; font-size: 15px; }
+.sc-ev-time i { font: italic 500 17px/1.4 var(--sc-display); }
+.sc-ev-time span { font-weight: 400; color: var(--sc-muted); }
+.sc-ev-place, .sc-ev-dress { font-size: 14px; color: var(--sc-muted); max-width: 32ch; text-wrap: balance; }
+.sc-ev-dress { font-style: italic; }
+.sc-ev .inv-dir { margin-top: 8px; background: transparent; color: var(--sc-maroon); border: 1px solid var(--sc-maroon); padding: .6em 1.1em; }
+.sc-actions { margin-top: 22px; }
+.sc-actions .inv-btn { font-size: 14px; padding: .8em 1.4em; }
+
+.sc-foot { margin-top: 26px; border-top: 1px solid rgba(176, 141, 60, .35); padding-top: 18px; display: grid; gap: 2px; }
+.sc-foot-k { font: italic 400 17px/1.4 var(--sc-display); color: var(--sc-muted); }
+.sc-foot-hosts { font: 600 22px/1.3 var(--sc-display); color: var(--sc-maroon); }
+.sc-foot-addr { font-size: 13px; color: var(--sc-muted); max-width: 30ch; margin: 4px auto 0 !important; text-wrap: balance; }
+.sc-phones { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 12px !important; }
+.sc-phone { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border: 1px solid var(--sc-maroon); border-radius: 999px; color: var(--sc-maroon); text-decoration: none; font-weight: 600; font-size: 14px; white-space: nowrap; }
+.sc-end { margin-top: 16px !important; font: 400 18px/1.4 'Tiro Devanagari Hindi', serif; color: var(--sc-gold); }
+
+/* Hindi: a little larger, and the couple in the Devanagari serif (Great Vibes has no Devanagari). */
+html.v-simple.lang-hi .sc-root { font-size: 16px; }
+html.v-simple.lang-hi .sc-couple { font: 400 44px/1.3 'Tiro Devanagari Hindi', serif; }
+html.v-simple.lang-hi .sc-title { font-size: 20px; }
+html.v-simple.lang-hi .sc-ev-name { font-size: 25px; }
+
+/* Fade-in (live page only; the image card and reduced motion show everything at once). */
+.sc-root:not(.is-still) .sc-in { opacity: 0; transform: translateY(12px); transition: opacity .7s ease, transform .7s ease; }
+.sc-root:not(.is-still) .sc-in.is-on { opacity: 1; transform: none; }
+
+@media (max-width: 380px) {
+  .sc-card { padding: 34px 18px 28px; }
+  .sc-couple { font-size: 46px; }
+  .sc-ev-name { font-size: 22px; }
+}

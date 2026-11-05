@@ -175,7 +175,7 @@
      everything runs through a soft compressor and a small synthetic hall. sound.say() speaks text with the
      device's own voice (the metro announcements). */
   const sound = (function () {
-    let ac = null, unlocked = false, muted = false, theme = '', bus = null, hall = null, nbuf = null;
+    let ac = null, unlocked = false, muted = false, silent = false, theme = '', bus = null, hall = null, nbuf = null;
     const strings = {};
     try { muted = localStorage.getItem('invite-muted') === '1'; } catch (e) { /* storage blocked */ }
     function ctxA() {
@@ -470,13 +470,13 @@
     ['pointerdown', 'keydown', 'touchstart'].forEach(t => root.addEventListener(t, unlock, { once: true, capture: true }));
     return {
       play(name) {
-        if (muted || !unlocked || Invite.isStatic) return;
-        const p = (themes[theme] && themes[theme][name]) || base[name];
+        if (muted || silent || !unlocked || Invite.isStatic) return;
+        const p =(themes[theme] && themes[theme][name]) || base[name];
         if (!p) return;
         try { if (ctxA()) p(); } catch (e) { /* audio unavailable */ }
       },
       say(parts, delayMs) {
-        if (!speech || muted || !unlocked || Invite.isStatic) return;
+        if (!speech || muted || silent || !unlocked || Invite.isStatic) return;
         hush();
         const id = sayId;
         setTimeout(() => {
@@ -494,6 +494,8 @@
       },
       hush,
       setTheme(id) { theme = id || ''; },
+      // A silent card (data.js VARIANTS silent: true) never plays or speaks; unlike muting, nothing is remembered.
+      setSilent(v) { silent = !!v; if (silent) hush(); },
       // The shared audio graph, for a variant that makes its own music (cassette): { ac, input, hall, kit } or
       // null. kit holds the instruments above; they take t0 in seconds from now and a `dest` node.
       graph() { return ctxA() ? { ac, input: bus, hall, kit: { osc, noise, fm, pluck, drum, brass, ghungroo } } : null; },
@@ -767,10 +769,12 @@
     start(mount, opts) {
       const known = D.VARIANTS.some(v => v.id === opts.variant);
       const id = known ? opts.variant : Invite.groupFor(opts.code).variant;
+      const silent = !!(D.VARIANTS.find(v => v.id === id) || {}).silent;
       if (id === 'patrika') opts = Object.assign({}, opts, { lang: 'hi' });   // the plain Hindi card is always Hindi
       const ctx = Invite.buildCtx(opts);
       Invite.isStatic = ctx.isStatic;
       sound.setTheme(id);
+      sound.setSilent(silent);
       document.documentElement.classList.add('v-' + id);
       if (ctx.hi) {
         document.documentElement.lang = 'hi';
@@ -793,7 +797,7 @@
         // The calendar file keeps the English names and places so map apps can find them.
         if (e.target.closest('[data-inv-cal]')) { sound.play('ding'); Invite.downloadIcs(ctx.events.map(ev => Object.assign({}, ev, ev.en))); }
       });
-      if (!ctx.isStatic) Invite.mountSoundToggle();
+      if (!ctx.isStatic && !silent) Invite.mountSoundToggle();
 
       const css = document.createElement('link');
       css.rel = 'stylesheet'; css.href = `variants/${id}.css`;
