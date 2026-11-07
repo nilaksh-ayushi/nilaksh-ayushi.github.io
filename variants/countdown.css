@@ -1,13 +1,14 @@
-/* Shaadi Countdown: gold header with a mogra toran on a rani-maroon bandhani ground; each function carries its own pastel. */
+/* Shaadi Countdown: gold header with a mogra toran on a rani-maroon bandhani ground; ivory cards with gold edges,
+   each function marked by its own jewel tone (a band, a dot, a soft wash) rather than a full pastel fill. */
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@400;500;600&family=Tiro+Devanagari+Hindi&display=swap');
 
 html.v-countdown {
   --cd-ground: #5b1131; --cd-ink: #fff1f4; --cd-muted: #eab8c8; --cd-rule: #8e3b60; --cd-gold: #ffcf6e;
   --cd-sign: #f8cf72; --cd-sign-2: #f2a541; --cd-sign-ink: #5b1131; --cd-bead: #fff4e6; --cd-bead-ring: #e5739a;
-  --cd-board: #fffaf4; --cd-board-edge: #eccfd0; --cd-board-ink: #3e1626; --cd-board-dim: #75505c;
+  --cd-board: #fff8ec; --cd-board-edge: #e9c98a; --cd-board-ink: #3e1626; --cd-board-dim: #75505c;
   --cd-lead: #9c3d00; --cd-go: #17693f; --cd-gone: #836a76;
   --cd-tile: #8f1846; --cd-tile-lo: #7c123b; --cd-flap: #ffd98a; --cd-flap-go: #c6f2d4;
-  --cd-dots: rgba(255, 207, 110, .11); --cd-tint: #fbdbe6;
+  --cd-dots: rgba(255, 207, 110, .11); --cd-tone: #b4235f;
   --cd-f-display: 'Cormorant Garamond', Georgia, serif;
   --cd-f-body: 'Poppins', system-ui, sans-serif;
   --cd-f-hindi: 'Tiro Devanagari Hindi', 'Noto Serif Devanagari', serif;
@@ -21,15 +22,17 @@ html.v-countdown body {
   background-size: 26px 26px; background-position: 0 0, 13px 13px;
   color: var(--cd-ink); font-family: var(--cd-f-body);
 }
-.v-countdown [data-fn="sunderkand"] { --cd-tint: #ffe6cf; }
-.v-countdown [data-fn="mehandi"] { --cd-tint: #e2f0d2; }
-.v-countdown [data-fn="engagement"] { --cd-tint: #fbdbe6; }
-.v-countdown [data-fn="bhaat"] { --cd-tint: #fde3d8; }
-.v-countdown [data-fn="haldi"] { --cd-tint: #fff0b3; }
-.v-countdown [data-fn="ghudchadi"] { --cd-tint: #d6eeea; }
-.v-countdown [data-fn="baraat"] { --cd-tint: #fde0c8; }
-.v-countdown [data-fn="dinner"] { --cd-tint: #e7e0f4; }
-.v-countdown [data-fn="vidaai"] { --cd-tint: #dbe6f6; }
+.v-countdown [data-fn="sunderkand"] { --cd-tone: #d9731f; }
+.v-countdown [data-fn="mehandi"] { --cd-tone: #4f7a3a; }
+.v-countdown [data-fn="engagement"] { --cd-tone: #c2185b; }
+.v-countdown [data-fn="bhaat"] { --cd-tone: #b5562b; }
+.v-countdown [data-fn="haldi"] { --cd-tone: #d4a017; }
+.v-countdown [data-fn="ghudchadi"] { --cd-tone: #2e7d74; }
+.v-countdown [data-fn="baraat"] { --cd-tone: #e07b00; }
+.v-countdown [data-fn="dinner"] { --cd-tone: #6a3d8f; }
+.v-countdown [data-fn="vidaai"] { --cd-tone: #34558b; }
+/* a soft wash of the function's tone on ivory, worked out on each element that carries data-fn */
+.v-countdown [data-fn] { --cd-tint: color-mix(in srgb, var(--cd-tone) 9%, var(--cd-board)); }
 
 .cd { font-size: 15px; line-height: 1.5; }
 .cd p { margin: 0; }
@@ -55,7 +58,7 @@ html.v-countdown body {
 .cd-rail-fill { position: relative; height: 100%; width: 0; border-radius: 2px; background: var(--cd-gold); transition: width 1s linear; }
 .cd-stops { position: relative; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
 .cd-stop { display: grid; justify-items: center; align-content: start; gap: 4px; padding-inline: 3px; text-align: center; }
-.cd-dot { position: relative; z-index: 1; width: 20px; height: 20px; border-radius: 50%; border: 3px solid var(--cd-rule); background: var(--cd-tint); }
+.cd-dot { position: relative; z-index: 1; width: 20px; height: 20px; border-radius: 50%; border: 3px solid var(--cd-board); background: var(--cd-tone); }
 .cd-stop.is-done .cd-dot { border-color: var(--cd-muted); background: var(--cd-muted); }
 .cd-stop.is-focus .cd-dot { border-color: var(--cd-gold); background: var(--cd-ground); box-shadow: 0 0 0 4px rgba(255, 207, 110, .25); }
 .cd-stop-name { font: 700 1.05rem/1.1 var(--cd-f-display); overflow-wrap: anywhere; }
@@ -66,7 +69,7 @@ html.v-countdown body {
 
 /* Boards */
 .cd-board { border: 1px solid var(--cd-board-edge); border-radius: 12px; background: var(--cd-board); color: var(--cd-board-ink); }
-.cd-hero { display: grid; gap: 14px; min-width: 0; padding: 22px 18px; background: var(--cd-tint); }
+.cd-hero { display: grid; gap: 14px; min-width: 0; padding: 22px 18px; background: var(--cd-tint, var(--cd-board)); border-top: 6px solid var(--cd-tone); }
 .cd-kicker { display: flex; align-items: center; gap: 8px; font: 600 .74rem/1 var(--cd-f-body); letter-spacing: .16em; text-transform: uppercase; color: var(--cd-lead); }
 .cd-hero.is-live .cd-kicker { color: var(--cd-go); }
 .cd-hero h2 { margin: 0; font: 700 clamp(2.1rem, 10vw, 3rem)/1.05 var(--cd-f-display); text-wrap: balance; overflow-wrap: anywhere; }
