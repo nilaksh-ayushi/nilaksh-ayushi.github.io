@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nilaksh &amp; Ayushi</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="Countdown to the wedding functions of Nilaksh &amp; Ayushi.">
+<meta property="og:title" content="Nilaksh &amp; Ayushi · Shaadi Countdown">
+<meta property="og:description" content="Countdown to the wedding functions">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://nilaksh-ayushi.github.io/og.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://nilaksh-ayushi.github.io/8fce5a36-9e03-41b9-9481-9157a681138d/">
+<meta name="theme-color" content="#f5b85a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@400;500;600&family=Tiro+Devanagari+Hindi&display=swap">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<style>
+/* Layout: a shaadi countdown. Pastel header with a marigold toran, a route of stops, one big flap board for the next function, then the full schedule. Each function carries its own pastel. */
+:root{
+  --ground:#5b1131; --panel:#6c1b3f; --field:#4a0c27; --ink:#fff1f4; --muted:#eab8c8; --rule:#8e3b60;
+  --sign:#f8cf72; --sign-2:#f2a541; --sign-ink:#5b1131; --bead:#fff4e6; --bead-ring:#e5739a; --signal:#ffcf6e; --scrim:rgba(20,4,12,.6); --dots:rgba(255,207,110,.11);
+  --board:#fffaf4; --board-edge:#eccfd0; --tile:#8f1846; --tile-lo:#7c123b; --hinge:rgba(0,0,0,.35);
+  --board-ink:#3e1626; --board-dim:#75505c; --lead:#9c3d00; --go:#17693f; --gone:#836a76;
+  --flap:#ffd98a; --flap-go:#c6f2d4; --genda:#f5a623; --genda-deep:#e8791b; --tint-amt:100%; --tint:#fbdbe6;
+  --f-display:"Cormorant Garamond",Georgia,serif;
+  --f-body:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-label:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-hindi:"Tiro Devanagari Hindi","Noto Serif Devanagari",serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#1c0611; --panel:#2a1020; --field:#1c0611; --ink:#f7e8ea; --muted:#d4a9b9; --rule:#57263d;
+    --sign:#8a5414; --sign-2:#6a3a0c; --sign-ink:#ffeccc; --signal:#ffcf6e; --scrim:rgba(10,4,8,.65);
+    --board:#2a1722; --board-edge:#4d2c3b; --tile:#7a163f; --tile-lo:#661234;
+    --board-ink:#f7e8ea; --board-dim:#c9a7b2; --lead:#ffc46b; --go:#86e0a9; --gone:#a48b98;
+    --flap:#ffe0a0; --flap-go:#c6f2d4; --tint-amt:15%; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#1c0611; --panel:#2a1020; --field:#1c0611; --ink:#f7e8ea; --muted:#d4a9b9; --rule:#57263d;
+  --sign:#8a5414; --sign-2:#6a3a0c; --sign-ink:#ffeccc; --signal:#ffcf6e; --scrim:rgba(10,4,8,.65);
+  --board:#2a1722; --board-edge:#4d2c3b; --tile:#7a163f; --tile-lo:#661234;
+  --board-ink:#f7e8ea; --board-dim:#c9a7b2; --lead:#ffc46b; --go:#86e0a9; --gone:#a48b98;
+  --flap:#ffe0a0; --flap-go:#c6f2d4; --tint-amt:15%; color-scheme:dark;
+}
+[data-fn="sunderkand"]{--tint:#ffe6cf}
+[data-fn="mehandi"]{--tint:#e2f0d2}
+[data-fn="engagement"]{--tint:#fbdbe6}
+[data-fn="bhaat"]{--tint:#fde3d8}
+[data-fn="haldi"]{--tint:#fff0b3}
+[data-fn="ghudchadi"]{--tint:#d6eeea}
+[data-fn="baraat"]{--tint:#fde0c8}
+[data-fn="dinner"]{--tint:#e7e0f4}
+[data-fn="vidaai"]{--tint:#dbe6f6}
+*{box-sizing:border-box}
+body{min-height:100vh;background:var(--ground);background-image:radial-gradient(var(--dots) 1.5px,transparent 2px),radial-gradient(var(--dots) 1.5px,transparent 2px);background-size:26px 26px;background-position:0 0,13px 13px;color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.gutter{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* Sign */
+.sign{position:relative;background:linear-gradient(120deg,var(--sign),var(--sign-2));color:var(--sign-ink);margin-bottom:16px}
+.sign::after{content:"";position:absolute;left:0;right:0;top:100%;height:16px;background:radial-gradient(circle at 50% 0,var(--bead) 0 7px,var(--bead-ring) 7.5px 8.5px,transparent 9px) 0 0/20px 16px repeat-x}
+.sign-inner{max-width:1080px;margin:0 auto;padding-block:22px 26px;display:grid;gap:6px}
+.sign .eyebrow{margin:0;font:600 .78rem/1 var(--f-label);letter-spacing:.18em;text-transform:uppercase;opacity:.85}
+.sign h1{margin:0;font:700 clamp(2.4rem,6.4vw,4rem)/1 var(--f-display);text-wrap:balance}
+.sign .sub{margin:0;font:400 .85rem/1.4 var(--f-label);opacity:.85}
+
+.wrap{max-width:1080px;margin:0 auto;padding-block:28px 56px;display:grid;grid-template-columns:minmax(0,1fr);gap:28px}
+
+/* Route */
+.route-scroll{overflow-x:auto;padding-bottom:4px}
+.route-track{position:relative;min-width:calc(var(--n) * 104px)}
+.rail{position:absolute;top:8px;left:calc(50% / var(--n));right:calc(50% / var(--n));height:4px;background:var(--rule);border-radius:2px}
+.rail-fill{position:relative;height:100%;width:0;background:var(--signal);border-radius:2px;transition:width 1s linear}
+.rail-fill::after{content:"";position:absolute;right:-10px;top:-6px;width:20px;height:16px;border-radius:8px;background:var(--signal);box-shadow:0 0 0 3px var(--ground)}
+.stops{position:relative;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr))}
+.stop{display:grid;justify-items:center;align-content:start;gap:6px;text-align:center;padding-inline:4px}
+.dot{width:20px;height:20px;border-radius:50%;background:var(--tint);border:3px solid var(--rule);position:relative;z-index:1}
+.stop.is-done .dot{background:var(--muted);border-color:var(--muted)}
+.stop.is-focus .dot{border-color:var(--signal);background:var(--ground);box-shadow:0 0 0 4px color-mix(in srgb,var(--signal) 25%,transparent)}
+.stop-name{font:700 1.15rem/1.1 var(--f-display);overflow-wrap:anywhere}
+.stop-day{font:400 .72rem/1 var(--f-label);color:var(--muted)}
+.stop-time{font:600 .78rem/1.2 var(--f-label);color:var(--signal)}
+.stop.is-done .stop-time{color:var(--muted)}
+.stop.is-done .stop-name{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
+.stop.is-focus .stop-name{color:var(--signal)}
+
+/* Boards */
+.board{background:var(--board);color:var(--board-ink);border:1px solid var(--board-edge);border-radius:12px}
+.hero{padding:clamp(20px,4vw,36px);display:grid;gap:16px;min-width:0;background:color-mix(in srgb,var(--tint) var(--tint-amt),var(--board))}
+.hero .eyebrow{margin:0;display:flex;align-items:center;gap:8px;font:600 .78rem/1 var(--f-label);letter-spacing:.16em;text-transform:uppercase;color:var(--lead)}
+.hero.is-live .eyebrow{color:var(--go)}
+.hero h2{margin:0;font:700 clamp(2.4rem,7vw,4.6rem)/1 var(--f-display);text-wrap:balance;overflow-wrap:anywhere}
+.hero-hi{margin:-8px 0 0;font:400 1.3rem/1.3 var(--f-hindi);color:var(--board-dim)}
+.meta{margin:0;display:flex;flex-wrap:wrap;gap:6px 18px;font:400 .92rem/1.4 var(--f-label);color:var(--board-dim)}
+.hero-note{margin:0;font-style:italic;color:var(--board-dim);max-width:60ch}
+.count-label{margin:0 0 10px;font:600 .72rem/1 var(--f-label);letter-spacing:.16em;text-transform:uppercase;color:var(--board-dim)}
+.flaps{display:flex;flex-wrap:wrap;gap:clamp(10px,2.4vw,22px)}
+.unit{display:grid;justify-items:center;gap:8px}
+.unit > span{font:600 .68rem/1 var(--f-label);letter-spacing:.16em;text-transform:uppercase;color:var(--board-dim)}
+.tiles{display:flex;gap:4px}
+.tile{position:relative;display:grid;place-items:center;width:clamp(38px,8.6vw,72px);height:clamp(56px,12.6vw,100px);border-radius:6px;background:linear-gradient(var(--tile) 0 50%,var(--tile-lo) 50% 100%);font:700 clamp(2.1rem,7.8vw,4.6rem)/1 var(--f-display);font-style:normal;color:var(--flap);font-variant-numeric:lining-nums tabular-nums}
+.hero.is-live .tile{color:var(--flap-go)}
+.tile::after{content:"";position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;background:var(--hinge)}
+.tile.turn{animation:turn .42s cubic-bezier(.3,.7,.4,1)}
+@keyframes turn{0%{transform:perspective(320px) rotateX(-80deg);filter:brightness(1.7)}100%{transform:none;filter:none}}
+.after{margin:4px 0 0;padding-top:14px;border-top:1px dashed var(--board-edge);font:400 .88rem/1.4 var(--f-label);color:var(--board-dim)}
+.after strong{color:var(--board-ink);font-weight:600}
+
+.lamp{display:inline-block;width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+.is-live .lamp{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+
+.board-head,.row{display:grid;grid-template-columns:9.5rem minmax(0,1fr) 10rem 11.5rem;gap:16px;align-items:center;padding:14px clamp(16px,3vw,28px)}
+.board-head{font:600 .7rem/1 var(--f-label);letter-spacing:.16em;text-transform:uppercase;color:var(--board-dim);border-bottom:1px solid var(--board-edge)}
+.board-head .r,.c-count{text-align:right}
+.rows{list-style:none;margin:0;padding:0}
+.row + .row{border-top:1px solid var(--board-edge)}
+.row.is-focus{background:color-mix(in srgb,var(--tint) var(--tint-amt),var(--board))}
+.c-time{display:grid;gap:2px;font-family:var(--f-label)}
+.day{font-size:.78rem;color:var(--board-dim)}
+.clock{font-size:1rem;line-height:1.25;color:var(--lead);font-weight:600}
+.c-name{min-width:0}
+.c-name strong{display:block;font:700 1.65rem/1.1 var(--f-display);overflow-wrap:anywhere}
+.c-name .hi{display:block;margin-top:2px;font:400 1rem/1.3 var(--f-hindi);color:var(--board-dim)}
+.venue{display:block;margin-top:5px;font-size:.92rem;color:var(--board-dim)}
+.note{display:block;margin-top:2px;font-size:.85rem;font-style:italic;color:var(--board-dim)}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border:1px solid currentColor;border-radius:999px;font:600 .7rem/1 var(--f-label);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.row.is-upcoming .pill{color:var(--lead)}
+.row.is-live .pill{color:var(--go)}
+.row.is-done .pill{color:var(--gone)}
+.c-count{font:600 1rem/1.2 var(--f-label);font-variant-numeric:tabular-nums}
+.row.is-done .c-name strong,.row.is-done .clock{color:var(--gone)}
+.row.is-done .c-name strong{text-decoration:line-through;text-decoration-thickness:2px}
+.row.is-done .c-count{color:var(--gone);font-weight:400}
+
+/* Footer */
+.foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;color:var(--muted);font-size:.9rem}
+.foot p{margin:0}
+.egg{display:flex;align-items:center;gap:14px}
+.egg-dhol{font-size:2.6rem;line-height:1;padding:6px;border:0;border-radius:50%;background:none;cursor:pointer}
+.egg-dhol:focus-visible{outline:3px solid var(--signal);outline-offset:2px}
+.egg-dhol.hit{animation:thump .28s ease-out}
+@keyframes thump{30%{transform:scale(1.25) rotate(-12deg)}60%{transform:scale(.95) rotate(6deg)}}
+.egg-line{font:600 1.05rem/1.3 var(--f-body);color:var(--ink)}
+.egg-hint{font-size:.85rem;color:var(--muted)}
+.pop{display:flex;align-items:center;gap:12px}
+.pop-btn{font-size:2.4rem;line-height:1;padding:6px;border:0;border-radius:50%;background:none;cursor:pointer}
+.pop-btn:focus-visible{outline:3px solid var(--lead);outline-offset:2px}
+.pop-btn.hit{animation:thump .28s ease-out}
+.pop-line{margin:0;font:600 1.05rem/1.3 var(--f-body);color:var(--board-ink)}
+.confetti{position:fixed;z-index:20;width:8px;height:12px;border-radius:2px;pointer-events:none}
+.petal{position:fixed;top:-24px;z-index:20;width:14px;height:14px;border-radius:60% 0 60% 0;background:var(--genda);pointer-events:none;animation:fall var(--d) linear forwards}
+@keyframes fall{to{transform:translate(var(--x),110vh) rotate(540deg)}}
+@media (max-width:680px){
+  .board-head{display:none}
+  .row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"time status" "name name" "count count";gap:10px}
+  .c-time{grid-area:time}.c-status{grid-area:status}.c-name{grid-area:name}.c-count{grid-area:count;text-align:left}
+}
+@media (prefers-reduced-motion:reduce){
+  .tile.turn,.is-live .lamp,.egg-dhol.hit,.pop-btn.hit{animation:none}
+  .rail-fill{transition:none}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script type="application/json" id="locked">{"iv":"8ww1UtV5Enfy2ML/","ct":"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"}</script>
+<script>
+(() => {
+  const HOUR = 3600e3;
+  const LABEL = { d: 'Days', h: 'Hours', m: 'Minutes', s: 'Seconds' };
+  const STATUS = { upcoming: 'Upcoming', live: 'Happening now', done: 'Done' };
+
+  let state = {};
+  let focusKey = '';
+  let lastMinute = -1;
+
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const p2 = n => String(n).padStart(2, '0');
+  const startOf = f => Date.parse(f.start);
+  const endOf = f => startOf(f) + (Number(f.hours) > 0 ? Number(f.hours) : 3) * HOUR;
+  const sorted = () => (state.functions || []).filter(f => !isNaN(startOf(f))).sort((a, b) => startOf(a) - startOf(b));
+  const statusOf = (f, now) => now < startOf(f) ? 'upcoming' : now < endOf(f) ? 'live' : 'done';
+  function focusOf(list, now) {
+    let i = list.findIndex(f => statusOf(f, now) === 'live');
+    if (i < 0) i = list.findIndex(f => statusOf(f, now) === 'upcoming');
+    return i;
+  }
+  const keyOf = (list, fi, now) => list.length + ':' + fi + ':' + (fi >= 0 ? statusOf(list[fi], now) : 'none');
+
+  const dayFmt = new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
+  const timeFmt = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+  const day = ms => dayFmt.format(new Date(ms));
+  const time = ms => timeFmt.format(new Date(ms));
+  const clockOf = f => f.timeText ? esc(f.timeText) : time(startOf(f));
+
+  function parts(ms) {
+    const s = Math.floor(Math.max(0, ms) / 1000);
+    return { d: Math.floor(s / 86400), h: Math.floor(s % 86400 / 3600), m: Math.floor(s % 3600 / 60), s: s % 60 };
+  }
+  function compact(ms) {
+    const t = parts(ms);
+    if (t.d > 0) return `${t.d}d ${p2(t.h)}h ${p2(t.m)}m`;
+    if (t.h > 0) return `${t.h}h ${p2(t.m)}m ${p2(t.s)}s`;
+    return `${t.m}m ${p2(t.s)}s`;
+  }
+  function spoken(ms) {
+    const t = parts(ms);
+    const bits = [];
+    if (t.d) bits.push(`${t.d} day${t.d === 1 ? '' : 's'}`);
+    if (t.h) bits.push(`${t.h} hour${t.h === 1 ? '' : 's'}`);
+    bits.push(`${t.m} minute${t.m === 1 ? '' : 's'}`);
+    return bits.join(', ');
+  }
+
+  /* ---------- markup ---------- */
+  function signHtml(list, now) {
+    const done = list.filter(f => statusOf(f, now) === 'done').length;
+    return `<header class="sign"><div class="sign-inner gutter">
+      <p class="eyebrow">Shaadi Countdown · शुभ विवाह</p>
+      <h1>${esc(state.title || 'Our Functions')}</h1>
+      <p class="sub">${list.length} function${list.length === 1 ? '' : 's'} · ${done} done · times in IST</p>
+    </div></header>`;
+  }
+
+  function routeHtml(list, fi, now) {
+    if (list.length < 2) return '';
+    const stops = list.map((f, i) => {
+      const st = statusOf(f, now);
+      return `<li class="stop is-${st}${i === fi ? ' is-focus' : ''}" data-fn="${esc(f.id)}"><span class="dot"></span><span class="stop-name">${esc(f.short || f.name)}</span><span class="stop-day">${day(startOf(f))}</span><span class="stop-time">${clockOf(f)}</span></li>`;
+    }).join('');
+    return `<section class="route" aria-label="Progress through the functions"><div class="route-scroll"><div class="route-track" style="--n:${list.length}">
+      <div class="rail" aria-hidden="true"><div class="rail-fill" id="rail-fill"></div></div>
+      <ol class="stops">${stops}</ol>
+    </div></div></section>`;
+  }
+
+  function heroHtml(list, fi, now) {
+    if (!list.length) {
+      return `<section class="board hero"><p class="eyebrow">Board is empty</p><h2>No functions yet</h2>
+        <p class="meta">Functions will show here once they are added.</p></section>`;
+    }
+    if (fi < 0) {
+      const last = list[list.length - 1];
+      return `<section class="board hero"><p class="eyebrow">All functions are done</p><h2>That’s a wrap</h2>
+        <p class="meta"><span>The last function, ${esc(last.name)}, ended ${day(endOf(last))}.</span></p></section>`;
+    }
+    const f = list[fi];
+    const st = statusOf(f, now);
+    const next = list[fi + 1];
+    const s = startOf(f);
+    const units = ['d', 'h', 'm', 's'].map(u => `<div class="unit"><div class="tiles" data-u="${u}"></div><span>${LABEL[u]}</span></div>`).join('');
+    return `<section class="board hero is-${st}" data-fn="${esc(f.id)}" aria-labelledby="hero-name">
+      <p class="eyebrow"><span class="lamp"></span>${st === 'live' ? 'Happening now' : 'Next up'}</p>
+      <h2 id="hero-name">${esc(f.name)}</h2>
+      ${f.hi ? `<p class="hero-hi" lang="hi">${esc(f.hi)}</p>` : ''}
+      <p class="meta"><span>${day(s)} · ${clockOf(f)}</span>${f.venue ? `<span>${esc(f.venue)}</span>` : ''}</p>
+      ${f.note ? `<p class="hero-note">${esc(f.note)}</p>` : ''}
+      <div class="countdown" aria-hidden="true"><p class="count-label">${st === 'live' ? 'Ends in' : f.timeText ? `${day(s)} begins in` : 'Starts in'}</p><div class="flaps">${units}</div></div>
+      <p class="sr" id="hero-sr"></p>
+      ${st === 'live' && !NO_POP.includes(f.id) ? `<div class="pop"><button class="pop-btn" id="pop-btn" type="button" aria-label="Pop a party popper">🎉</button><p class="pop-line" id="pop-line" aria-live="polite">${pops ? POPS[(pops - 1) % POPS.length] : 'Party popper chalao!'}</p></div>` : ''}
+      <p class="after">${next ? `Then <strong>${esc(next.name)}</strong> · ${day(startOf(next))}, ${clockOf(next)}` : 'This is the last function on the board.'}</p>
+    </section>`;
+  }
+
+  function boardHtml(list, fi, now) {
+    if (!list.length) return '';
+    const rows = list.map((f, i) => {
+      const st = statusOf(f, now);
+      return `<li class="row is-${st}${i === fi ? ' is-focus' : ''}" data-id="${esc(f.id)}" data-fn="${esc(f.id)}">
+        <div class="c-time"><span class="day">${day(startOf(f))}</span><span class="clock">${clockOf(f)}</span></div>
+        <div class="c-name"><strong>${esc(f.name)}</strong>${f.hi ? `<span class="hi" lang="hi">${esc(f.hi)}</span>` : ''}${f.venue ? `<span class="venue">${esc(f.venue)}</span>` : ''}${f.note ? `<span class="note">${esc(f.note)}</span>` : ''}</div>
+        <div class="c-status"><span class="pill"><span class="lamp"></span>${STATUS[st]}</span></div>
+        <div class="c-count" data-count></div>
+      </li>`;
+    }).join('');
+    return `<section class="board departures" aria-label="All functions">
+      <div class="board-head" aria-hidden="true"><span>Time</span><span>Function</span><span>Status</span><span class="r">Countdown</span></div>
+      <ol class="rows">${rows}</ol>
+    </section>`;
+  }
+
+  function footHtml() {
+    const [line, hint] = eggText();
+    return `<footer class="foot"><div class="egg"><button class="egg-dhol" id="egg-dhol" type="button" aria-label="Play the dhol">🥁</button><div><p class="egg-line" id="egg-line" aria-live="polite">${line}</p><p class="egg-hint" id="egg-hint">${hint}</p></div></div></footer>`;
+  }
+
+  /* ---------- easter egg: the dhol ---------- */
+  const BEATS = ['Dha!', 'Dhin dhin!', 'Padosi jaag gaye', 'Mama ji ne kamar kas li', 'DJ wale babu, gaana laga do', 'Ghodi bhi thirak rahi hai', 'Ab toh naachna padega! Milte hain shaadi mein.'];
+  let beats = 0, audio = null;
+  const eggText = () => !beats ? ['Psst… dhol bajao.', 'Tap it. Go on.']
+    : [BEATS[beats - 1], beats === BEATS.length ? 'Phir se bajao?' : `${beats} / ${BEATS.length}`];
+
+  function thump(big) {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const t = audio.currentTime, o = audio.createOscillator(), g = audio.createGain();
+      o.frequency.setValueAtTime(big ? 190 : 140, t);
+      o.frequency.exponentialRampToValueAtTime(48, t + .25);
+      g.gain.setValueAtTime(.7, t);
+      g.gain.exponentialRampToValueAtTime(.001, t + .3);
+      o.connect(g).connect(audio.destination);
+      o.start(t); o.stop(t + .32);
+    } catch (e) { /* no sound on this device */ }
+  }
+
+  function petals() {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const colours = ['var(--genda)', 'var(--genda-deep)', 'var(--sign)'];
+    for (let i = 0; i < 40; i++) {
+      const p = document.createElement('span');
+      p.className = 'petal';
+      p.style.left = (Math.random() * 100) + 'vw';
+      p.style.background = colours[i % 3];
+      p.style.setProperty('--x', (Math.random() * 140 - 70) + 'px');
+      p.style.setProperty('--d', (2.4 + Math.random() * 2) + 's');
+      p.style.animationDelay = (Math.random() * .8) + 's';
+      p.addEventListener('animationend', () => p.remove());
+      document.body.appendChild(p);
+    }
+  }
+
+  function dhol(e) {
+    const btn = e.currentTarget;
+    beats = beats % BEATS.length + 1;
+    const last = beats === BEATS.length;
+    thump(last);
+    btn.classList.remove('hit');
+    void btn.offsetWidth;
+    btn.classList.add('hit');
+    const [line, hint] = eggText();
+    document.getElementById('egg-line').textContent = line;
+    document.getElementById('egg-hint').textContent = hint;
+    if (last) petals();
+  }
+
+  /* ---------- party popper, while a function is on ---------- */
+  const NO_POP = ['sunderkand', 'vidaai'];
+  const POPS = ['Mubarak ho!', 'Aur zor se!', 'Naacho naacho!', 'Ek aur popper!', 'Shaadi mubarak!'];
+  let pops = 0, poppedFor = '';
+
+  function popSound() {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const n = Math.floor(audio.sampleRate * .12), buf = audio.createBuffer(1, n, audio.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3);
+      const src = audio.createBufferSource(), hp = audio.createBiquadFilter(), g = audio.createGain();
+      src.buffer = buf; hp.type = 'highpass'; hp.frequency.value = 900; g.gain.value = .8;
+      src.connect(hp).connect(g).connect(audio.destination);
+      src.start();
+    } catch (e) { /* no sound on this device */ }
+  }
+
+  function confetti(x, y) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const colours = ['var(--genda)', 'var(--genda-deep)', 'var(--sign)', 'var(--flap-go)', 'var(--tile)'];
+    for (let i = 0; i < 60; i++) {
+      const c = document.createElement('span');
+      c.className = 'confetti';
+      c.style.left = x + 'px';
+      c.style.top = y + 'px';
+      c.style.background = colours[i % colours.length];
+      document.body.appendChild(c);
+      const a = Math.random() * Math.PI * 2, v = 80 + Math.random() * 180;
+      const dx = Math.cos(a) * v, dy = Math.sin(a) * v - 120;
+      const anim = c.animate([
+        { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
+        { transform: `translate(${dx}px,${dy}px) rotate(${Math.random() * 360}deg)`, opacity: 1, offset: .35 },
+        { transform: `translate(${dx * 1.4}px,${dy + 420}px) rotate(${Math.random() * 900}deg)`, opacity: 0 },
+      ], { duration: 1600 + Math.random() * 900, easing: 'cubic-bezier(.2,.6,.4,1)' });
+      anim.onfinish = () => c.remove();
+    }
+  }
+
+  function popper(e) {
+    const btn = e.currentTarget, r = btn.getBoundingClientRect();
+    pops++;
+    popSound();
+    btn.classList.remove('hit');
+    void btn.offsetWidth;
+    btn.classList.add('hit');
+    document.getElementById('pop-line').textContent = POPS[(pops - 1) % POPS.length];
+    confetti(r.left + r.width / 2, r.top + r.height / 2);
+  }
+
+  /* ---------- render + tick ---------- */
+  function render() {
+    const now = Date.now();
+    const list = sorted();
+    const fi = focusOf(list, now);
+    focusKey = keyOf(list, fi, now);
+    lastMinute = -1;
+    document.getElementById('app').innerHTML = signHtml(list, now) +
+      `<main class="wrap gutter">${routeHtml(list, fi, now)}${heroHtml(list, fi, now)}${boardHtml(list, fi, now)}${footHtml()}</main>`;
+    document.getElementById('egg-dhol').addEventListener('click', dhol);
+    const pb = document.getElementById('pop-btn');
+    if (pb) {
+      pb.addEventListener('click', popper);
+      if (poppedFor !== focusKey) {
+        poppedFor = focusKey;
+        const r = pb.getBoundingClientRect();
+        confetti(r.left + r.width / 2, r.top + r.height / 2);
+      }
+    }
+    tick(true);
+  }
+
+  function setTiles(box, str, all) {
+    if (box.children.length !== str.length) {
+      box.innerHTML = [...str].map(c => `<b class="tile${all ? ' turn' : ''}">${c}</b>`).join('');
+      return;
+    }
+    [...str].forEach((c, i) => {
+      const t = box.children[i];
+      if (all || t.textContent !== c) {
+        t.textContent = c;
+        t.classList.remove('turn');
+        void t.offsetWidth;
+        t.classList.add('turn');
+      }
+    });
+  }
+
+  function tick(all) {
+    const now = Date.now();
+    const list = sorted();
+    const fi = focusOf(list, now);
+    if (!all && keyOf(list, fi, now) !== focusKey) { render(); return; }
+
+    if (fi >= 0) {
+      const f = list[fi];
+      const live = statusOf(f, now) === 'live';
+      const left = live ? endOf(f) - now : startOf(f) - now;
+      const t = parts(left);
+      const vals = { d: p2(t.d), h: p2(t.h), m: p2(t.m), s: p2(t.s) };
+      document.querySelectorAll('.hero .tiles').forEach(box => setTiles(box, vals[box.dataset.u], all));
+      const minute = Math.floor(left / 60000);
+      const sr = document.getElementById('hero-sr');
+      if (sr && minute !== lastMinute) {
+        lastMinute = minute;
+        sr.textContent = `${f.name} ${live ? 'ends' : 'starts'} in ${spoken(left)}.`;
+      }
+    }
+
+    const byId = new Map(list.map(f => [String(f.id), f]));
+    document.querySelectorAll('.row').forEach(row => {
+      const f = byId.get(row.dataset.id);
+      const cell = row.querySelector('[data-count]');
+      if (!f || !cell) return;
+      const st = statusOf(f, now);
+      cell.textContent = st === 'upcoming' ? `in ${compact(startOf(f) - now)}`
+        : st === 'live' ? `ends in ${compact(endOf(f) - now)}`
+        : `ended ${day(endOf(f))}`;
+    });
+
+    const fill = document.getElementById('rail-fill');
+    if (fill && list.length > 1) {
+      const n = list.length - 1;
+      let pos;
+      if (fi < 0) pos = 1;
+      else if (statusOf(list[fi], now) === 'live' || fi === 0) pos = fi / n;
+      else {
+        const a = endOf(list[fi - 1]), b = startOf(list[fi]);
+        const frac = b > a ? Math.min(1, Math.max(0, (now - a) / (b - a))) : 1;
+        pos = (fi - 1 + frac) / n;
+      }
+      fill.style.width = (pos * 100).toFixed(3) + '%';
+    }
+  }
+
+  /* ---------- boot ---------- */
+  const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+
+  async function unlock(token) {
+    if (!token || !(window.crypto && crypto.subtle)) return null;
+    const box = JSON.parse(document.getElementById('locked').textContent);
+    const raw = await crypto.subtle.digest('SHA-256', new TextEncoder().encode("nilaksh-ayushi/countdown/v1/" + token));
+    const key = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['decrypt']);
+    try {
+      const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(box.iv) }, key, b64(box.ct));
+      return JSON.parse(new TextDecoder().decode(plain));
+    } catch (e) { return null; }
+  }
+
+  function generic() {
+    document.getElementById('app').innerHTML = `<header class="sign"><div class="sign-inner gutter">
+      <p class="eyebrow">Shubh Vivah</p><h1>Nilaksh &amp; Ayushi</h1>
+    </div></header><main class="wrap gutter"><p>Please open the link exactly as it was sent to you.</p></main>`;
+  }
+
+  unlock(location.hash.slice(1)).then(data => {
+    if (!data) return generic();
+    state = data;
+    render();
+    setInterval(() => tick(false), 1000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(false); });
+  });
+})();
+</script>
+</body>
+</html>
